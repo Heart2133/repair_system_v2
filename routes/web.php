@@ -15,10 +15,16 @@ use App\Http\Controllers\TicketController;
 use LINE\LINEBot\EchoBot\Setting;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\DamageReportController;
 
 Auth::routes();
 
 Route::get('/', [App\Http\Controllers\HomeController::class, 'home'])->name('/');
+
+Route::get('/damage-report', [DamageReportController::class, 'index']);
+Route::post('/damage-report/store', [DamageReportController::class, 'store']);
+Route::get('/get-product', [DamageReportController::class, 'getProduct']);
+Route::get('/get-employee', [DamageReportController::class, 'getEmployee']);
 
 // Route::get('/storage-link', function () {
 //     // ลบลิงก์เดิมก่อน (ถ้ามี)

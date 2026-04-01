@@ -31,141 +31,192 @@
         use App\Models\Task_Img;
     @endphp
 
-    <div class="modal fade" id="orderAdd" tabindex="-1" aria-labelledby="orderDetailModalLabel" aria-hidden="true">
-        <div class="modal-dialog" style="max-width: 90%;">
+    <div class="modal fade" id="orderAdd" tabindex="-1">
+        <div class="modal-dialog modal-xl">
             <div class="modal-content">
+
+                <!-- HEADER -->
                 <div class="modal-header">
-                    <h5 class="modal-title" id="orderDetailModalLabel">เพิ่มใบแจ้งซ่อม</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title">เพิ่มใบแจ้งสินค้าทำลาย</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
 
-                <div class="border p-3 rounded" style="margin: 10px">
+                <!-- BODY -->
+                <div class="modal-body">
+
                     <div class="row">
+
+                        <!-- 🔵 LEFT -->
                         <div class="col-lg-6">
-                            <div class="row mb-2">
-                                <div class="col-md-6">
-                                    <label class="form-label">วันที่เอกสาร</label>
-                                    <input type="text" name="datenow" id="datenow" class="form-control"
-                                        value="{{ now()->format('Y-m-d') }}" disabled>
-                                </div>
-                                <div class="col-md-6">
 
-                                    <label class="form-label">สาขา <span style="color: red;">*</span></label>
-                                    @if (Auth::user()->role == 'admin')
-                                        <select id="branchSelect" class="form-select">
-                                            <option value="">-- เลือก --</option>
-                                            @foreach (getBranchAll() as $item)
-                                                <option value="{{ $item->branch_code }}">{{ $item->branch_code }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    @elseif(Auth::user()->role == 'cs')
-                                        <input type="text" class="form-control" name="hwhbranch" id="hwhbranch"
-                                            value="{{ Auth::user()->hwh_branch }}" disabled>
-                                    @endif
-                                </div>
-                            </div>
+                            <div class="card mb-3">
+                                <div class="card-header">ข้อมูลเอกสาร</div>
+                                <div class="card-body">
 
-                            <div class="row mb-2">
-                                <div class="col-md-6">
-                                    <label class="form-label">ชื่อลูกค้า <span style="color: red;">*</span></label>
-                                    <input type="text" class="form-control" name="customername" id="customername"
-                                        placeholder="กรุณากรอกชื่อ-นามสกุลลูกค้า">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">เบอร์ติดต่อ <span style="color: red;">*</span></label>
-                                    <input type="text" class="form-control" name="customertel" id="customertel"
-                                        placeholder="กรุณากรอกเบอร์ติดต่อลูกค้า">
-                                </div>
-                            </div>
-
-
-                            <div class="row mb-2">
-                                <div class="col-md-6">
-                                    <label class="form-label">การรับประกัน <span style="color: red;">*</span></label>
-                                    <div class="col-12 d-flex align-items-center gap-3">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="warrantyCheck"
-                                                value="Y" id="warrantyCheckY">
-                                            <label class="form-check-label" for="warrantyCheckY">
-                                                ในประกัน
-                                            </label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="warrantyCheck"
-                                                value="N" id="warrantyCheckN">
-                                            <label class="form-check-label" for="warrantyCheckN">
-                                                นอกประกัน
-                                            </label>
+                                    <!-- ประเภทผู้แจ้ง -->
+                                    <div class="mb-3">
+                                        <label>ประเภทผู้แจ้ง *</label>
+                                        <div class="d-flex gap-3">
+                                            <div class="form-check">
+                                                <input type="radio" class="form-check-input" name="report_type">
+                                                <label class="form-check-label">สาขาแจ้ง</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input type="radio" class="form-check-input" name="report_type">
+                                                <label class="form-check-label">ลูกค้าแจ้ง</label>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                <div class="col-md-6">
-                                    <label class="form-label">ประเภทสินค้า <span style="color: red;">*</span></label>
-                                    <div class="col-12 d-flex align-items-center gap-3">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="warrantyContry"
-                                                value="Y" id="warrantyContryY">
-                                            <label class="form-check-label" for="warrantyContryY">
-                                                ในประเทศ
-                                            </label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="warrantyContry"
-                                                value="N" id="warrantyContryN">
-                                            <label class="form-check-label" for="warrantyContryN">
-                                                นอกประเทศ
-                                            </label>
+                                    <!-- ประเภทสินค้า -->
+                                    <div class="mb-3">
+                                        <label>ประเภทสินค้า *</label>
+                                        <div class="d-flex gap-3">
+                                            <div class="form-check">
+                                                <input type="radio" class="form-check-input" name="product_type">
+                                                <label class="form-check-label">ในประเทศ</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input type="radio" class="form-check-input" name="product_type">
+                                                <label class="form-check-label">นอกประเทศ</label>
+                                            </div>
                                         </div>
                                     </div>
+
+                                    <!-- สาขา + วันที่ -->
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label>สาขา *</label>
+                                            @if (Auth::user()->role == 'admin')
+                                                <select class="form-select">
+                                                    <option value="">-- เลือก --</option>
+                                                    @foreach (getBranchAll() as $item)
+                                                        <option value="{{ $item->branch_code }}">
+                                                            {{ $item->branch_code }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            @else
+                                                <input type="text" class="form-control"
+                                                    value="{{ Auth::user()->hwh_branch }}" disabled>
+                                            @endif
+                                        </div>
+
+                                        <div class="col-md-6 mb-3">
+                                            <label>วันที่เอกสาร</label>
+                                            <input type="text" class="form-control" value="{{ now()->format('Y-m-d') }}"
+                                                disabled>
+                                        </div>
+                                    </div>
+
+                                    <!-- สาเหตุ -->
+                                    <div class="mb-3">
+                                        <label>สาเหตุความเสียหาย *</label>
+                                        <textarea class="form-control" rows="4"></textarea>
+                                    </div>
+
+                                    <!-- แนบไฟล์ -->
+                                    <div class="mb-3">
+                                        <label>แนบรูป / เอกสาร</label>
+                                        <input type="file" class="form-control" multiple>
+                                    </div>
+
                                 </div>
                             </div>
 
                         </div>
 
+                        <!-- 🟢 RIGHT -->
                         <div class="col-lg-6">
-                            <label class="form-label">เงื่อนไขการรับประกัน </label>
-                            <textarea id="brandConditionTextarea" class="form-control" rows="11" disabled></textarea>
-                        </div>
-                    </div>
-                    {{-- </div> --}}
 
-                    {{-- <div class="border p-3 rounded" style="margin: 10px"> --}}
-                    <div class="row">
-                        <div class="col-lg-6">
-                            <div class="row mb-2">
-                                <div class="col-md-6">
-                                    <label class="form-label">เบอร์แฟกซ์ Vendor </label>
-                                    <input id="vendorfax" type="text" class="form-control" value="" disabled>
+                            <!-- 📦 สินค้า -->
+                            <div class="card mb-3">
+                                <div class="card-header">ข้อมูลสินค้า</div>
+                                <div class="card-body">
+
+                                    <!-- 🔹 แถวที่ 1 -->
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label>รหัสสินค้า</label>
+                                            <input type="text" id="product_code" class="form-control">
+                                        </div>
+
+                                        <div class="col-md-6 mb-3">
+                                            <label>ชื่อสินค้า</label>
+                                            <input type="text" id="product_name" class="form-control" readonly>
+                                        </div>
+                                    </div>
+
+                                    <!-- 🔹 แถวที่ 2 -->
+                                    <div class="row">
+                                        <div class="col-md-4 mb-3">
+                                            <label>ราคาต่อหน่วย</label>
+                                            <input type="text" id="price" class="form-control" readonly>
+                                        </div>
+
+                                        <div class="col-md-4 mb-3">
+                                            <label>จำนวน</label>
+                                            <input type="number" id="qty" class="form-control">
+                                        </div>
+
+                                        <div class="col-md-4 mb-3">
+                                            <label>ราคารวม</label>
+                                            <input type="text" id="total" class="form-control" readonly>
+                                        </div>
+                                    </div>
+
                                 </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">ผู้ติดต่อ Vendor </label>
-                                    <input id="vendorcontact" type="text" class="form-control" value=""
-                                        disabled>
+                            </div>
+
+                            <!-- 👨‍💼 ผู้รับผิดชอบ -->
+                            <div class="card mb-3">
+                                <div class="card-header">ผู้รับผิดชอบ</div>
+                                <div class="card-body">
+
+                                    <div id="employee-wrapper">
+
+                                        <div class="row mb-2 employee-row">
+                                            <div class="col-md-4">
+                                                <label>รหัสพนักงาน</label>
+                                                <input type="text" class="form-control emp_code">
+                                            </div>
+
+                                            <div class="col-md-4">
+                                                <label>ชื่อพนักงาน</label>
+                                                <input type="text" class="form-control emp_name">
+                                            </div>
+
+                                            <div class="col-md-3">
+                                                <label>% ความรับผิดชอบ</label>
+                                                <input type="number" class="form-control emp_percent">
+                                            </div>
+
+                                            <div class="col-md-1 d-flex align-items-end">
+                                                <button type="button" class="btn btn-danger btn-sm btn-remove">X</button>
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+                                    <button type="button" class="btn btn-success btn-sm mt-2" id="add-employee">
+                                        + เพิ่มพนักงาน
+                                    </button>
+
                                 </div>
                             </div>
 
                         </div>
-                        <div class="col-lg-6">
-
-                            <label class="form-label">อาการเสีย <span style="color: red;">*</span> <span
-                                    style="color:red;">(กรุณาระบุให้ชัดเจน)</span></label>
-                            <textarea name="productdetail" id="productdetail" class="form-control" rows="5"
-                                placeholder="กรุณากรอกอาการเสีย"></textarea>
-                            {{-- <label for=""class="mt-1">เลือกรูปภาพประกอบ <span style="color: red;">*</span></label>
-                            <input type="file" id="image" name="image" class="form-control form-control-md"> --}}
-
-                        </div>
 
                     </div>
+
                 </div>
 
-
+                <!-- FOOTER -->
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-primary BTNsave">บันทึก</button>
+                    <button type="button" class="btn btn-primary BTNsave"> บันทึก</button>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button>
                 </div>
+
             </div>
         </div>
     </div>
@@ -237,5 +288,173 @@
                 }
             });
         });
+
+        $('#add-employee').click(function() {
+            let row = `
+    <div class="row mb-2 employee-row">
+        <div class="col-md-4">
+            <input type="text" class="form-control emp_code">
+        </div>
+        <div class="col-md-4">
+            <input type="text" class="form-control emp_name">
+        </div>
+        <div class="col-md-3">
+            <input type="number" class="form-control emp_percent">
+        </div>
+        <div class="col-md-1 d-flex align-items-end">
+            <button type="button" class="btn btn-danger btn-sm btn-remove">X</button>
+        </div>
+    </div>`;
+
+            $('#employee-wrapper').append(row);
+        });
+
+        $(document).on('click', '.btn-remove', function() {
+            $(this).closest('.employee-row').remove();
+        });
+
+        $(document).on('change', '.emp_code', function() {
+            let code = $(this).val();
+            let row = $(this).closest('.employee-row');
+
+            $.ajax({
+                url: '/api/employee/' + code,
+                success: function(res) {
+                    if (res) {
+                        row.find('.emp_name').val(res.name);
+                    } else {
+                        row.find('.emp_name').val('');
+                        alert('ไม่พบพนักงาน กรุณากรอกชื่อเอง');
+                    }
+                }
+            });
+        });
+
+        function validatePercent() {
+            let total = 0;
+
+            $('.emp_percent').each(function() {
+                total += parseFloat($(this).val()) || 0;
+            });
+
+            return total === 100;
+        }
+
+        function validateAmount() {
+            let totalProduct = parseFloat($('#total').val()) || 0;
+            let totalEmp = 0;
+
+            $('.emp_percent').each(function() {
+                let percent = parseFloat($(this).val()) || 0;
+                totalEmp += (percent / 100) * totalProduct;
+            });
+
+            return totalEmp === totalProduct;
+        }
+
+        $('.BTNsave').click(function() {
+
+            if (!validateForm()) {
+                return;
+            }
+
+            // 👉 ผ่านแล้ว ค่อย submit
+            alert('ผ่านแล้ว บันทึกได้');
+
+            // ตัวอย่าง submit
+            // $('#form-id').submit();
+        });
+
+        $('#product_code').on('change', function() {
+            let code = $(this).val();
+
+            $.get('/get-product', {
+                code: code
+            }, function(res) {
+                $('#product_name').val(res.product_name);
+                $('#price').val(res.price);
+            });
+        });
+
+        $(document).on('change', '.emp_code', function() {
+            let code = $(this).val();
+            let row = $(this).closest('.employee-row');
+
+            $.get('/get-employee', {
+                code: code
+            }, function(res) {
+                row.find('.emp_name').val(res.fullname);
+            });
+        });
+
+        function validateForm() {
+
+            // ✅ 1. ตรวจข้อมูลพื้นฐาน
+            if (!$('input[name="report_type"]:checked').val()) {
+                alert('กรุณาเลือกประเภทผู้แจ้ง');
+                return false;
+            }
+
+            if (!$('input[name="product_type"]:checked').val()) {
+                alert('กรุณาเลือกประเภทสินค้า');
+                return false;
+            }
+
+            if (!$('#product_code').val()) {
+                alert('กรุณากรอกรหัสสินค้า');
+                return false;
+            }
+
+            if (!$('#qty').val()) {
+                alert('กรุณากรอกจำนวนสินค้า');
+                return false;
+            }
+
+            // ✅ 2. ตรวจพนักงาน
+            let hasEmployee = false;
+
+            $('.employee-row').each(function() {
+                let code = $(this).find('.emp_code').val();
+                let percent = $(this).find('.emp_percent').val();
+
+                if (code && percent) {
+                    hasEmployee = true;
+                }
+            });
+
+            if (!hasEmployee) {
+                alert('กรุณาเพิ่มพนักงานอย่างน้อย 1 คน');
+                return false;
+            }
+
+            // ✅ 3. ตรวจ % รวม
+            let totalPercent = 0;
+
+            $('.emp_percent').each(function() {
+                totalPercent += parseFloat($(this).val()) || 0;
+            });
+
+            if (totalPercent !== 100) {
+                alert('เปอร์เซ็นต์รวมต้องเท่ากับ 100%');
+                return false;
+            }
+
+            // ✅ 4. ตรวจมูลค่า
+            let totalProduct = parseFloat($('#total').val()) || 0;
+            let totalEmpAmount = 0;
+
+            $('.emp_percent').each(function() {
+                let percent = parseFloat($(this).val()) || 0;
+                totalEmpAmount += (percent / 100) * totalProduct;
+            });
+
+            // ปัดเศษกัน error ทศนิยม
+            if (Math.round(totalEmpAmount) !== Math.round(totalProduct)) {
+                alert('มูลค่าความรับผิดชอบไม่ตรงกับราคาสินค้า');
+                return false;
+            }
+
+            return true;
+        }
     </script>
 @endsection
