@@ -1,0 +1,19 @@
+/node_modules
+/public/hot
+/public/storage
+/storage/*.key
+/vendor
+.env
+.env.backup
+.phpunit.result.cache
+docker-compose.override.yml
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
+/.idea
+/.vscode
+storage/framework/views
+storage/framework/views
+public/upload/notices_banner/22032023_bg-hwhdev-03.png
+public/upload/notices_file/22032023_finance-export-fee-pdf (36).pdf
