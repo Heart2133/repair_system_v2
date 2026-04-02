@@ -19,12 +19,14 @@ use App\Http\Controllers\DamageReportController;
 
 Auth::routes();
 
-Route::get('/', [App\Http\Controllers\HomeController::class, 'home'])->name('/');
+Route::get('/', [App\Http\Controllers\HomeController::class, 'dashboard'])->name('/');
+Route::get('/damage-report', [DamageReportController::class, 'index'])->name('damage-report');
 
-Route::get('/damage-report', [DamageReportController::class, 'index']);
+// Route::get('/damage-report', [DamageReportController::class, 'index']);
 Route::post('/damage-report/store', [DamageReportController::class, 'store']);
 Route::get('/get-product', [DamageReportController::class, 'getProduct']);
 Route::get('/get-employee', [DamageReportController::class, 'getEmployee']);
+Route::get('/dashboard', [DamageReportController::class, 'dashboard'])->name('dashboard');
 
 
 // Route::get('/storage-link', function () {

@@ -32,9 +32,18 @@ class HomeController extends Controller
      */
     public function home(Request $request)
     {
-             return view('home');
+        return view('dashboard');
     }
 
+    public function dashboard(Request $request)
+    {
+        return view('dashboard');
+    }
+
+    public function index()
+    {
+        return view('home'); // หรือ view('damage-report') ถ้าแยกไฟล์
+    }
 
     public function logout()
     {

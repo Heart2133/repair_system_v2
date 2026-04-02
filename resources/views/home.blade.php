@@ -92,7 +92,7 @@
                                         <div class="col-md-6 mb-3">
                                             <label>สาขา <span class="text-danger">*</span></label>
                                             @if (Auth::user()->role == 'admin')
-                                                <select class="form-select">
+                                                <select class="form-select" id="branch_code">
                                                     <option value="">-- เลือก --</option>
                                                     @foreach (getBranchAll() as $item)
                                                         <option value="{{ $item->branch_code }}">
@@ -103,6 +103,9 @@
                                             @else
                                                 <input type="text" class="form-control"
                                                     value="{{ Auth::user()->hwh_branch }}" disabled>
+
+                                                <input type="hidden" id="branch_code"
+                                                    value="{{ Auth::user()->hwh_branch }}">
                                             @endif
                                         </div>
 
@@ -238,7 +241,6 @@
                 + สร้างรายการใหม่
             </button>
         </div>
-
         <!-- 🔷 BODY -->
         <div class="card-body">
 
@@ -247,90 +249,72 @@
 
                 <div class="col-md-3">
                     <div class="border rounded p-3 text-center">
-                        <div class="text-muted">รายการใหม่</div>
-                        <h4 class="mb-0">0</h4>
+                        <div class="text-muted">รายการทั้งหมด</div>
+                        <h4 class="mb-0">{{ $total ?? 0 }}</h4>
                     </div>
                 </div>
 
                 <div class="col-md-3">
                     <div class="border rounded p-3 text-center">
                         <div class="text-muted">รออนุมัติ</div>
-                        <h4 class="mb-0 text-warning">0</h4>
+                        <h4 class="mb-0 text-warning">{{ $pending ?? 0 }}</h4>
                     </div>
                 </div>
 
                 <div class="col-md-3">
                     <div class="border rounded p-3 text-center">
-                        <div class="text-muted">อยู่ระหว่างดำเนินการ</div>
-                        <h4 class="mb-0 text-info">0</h4>
+                        <div class="text-muted">กำลังดำเนินการ</div>
+                        <h4 class="mb-0 text-info">{{ $process ?? 0 }}</h4>
                     </div>
                 </div>
 
                 <div class="col-md-3">
                     <div class="border rounded p-3 text-center">
                         <div class="text-muted">เสร็จสิ้น</div>
-                        <h4 class="mb-0 text-success">0</h4>
+                        <h4 class="mb-0 text-success">{{ $success ?? 0 }}</h4>
                     </div>
                 </div>
 
-            </div>
-
-            <!-- 📌 MY TASK -->
-            <div class="row mb-4">
-                <div class="col-md-6">
-
-                    <div class="card border">
-                        <div class="card-header bg-light">
-                            <strong>งานที่ต้องดำเนินการ</strong>
-                        </div>
-
-                        <div class="card-body">
-
-                            <div class="d-flex justify-content-between mb-2">
-                                <span>รออนุมัติ</span>
-                                <span class="badge bg-danger">0</span>
-                            </div>
-
-                            <div class="d-flex justify-content-between mb-2">
-                                <span>รอดำเนินการ SAP</span>
-                                <span class="badge bg-warning">0</span>
-                            </div>
-
-                            <div class="d-flex justify-content-between">
-                                <span>อยู่ระหว่างดำเนินการ</span>
-                                <span class="badge bg-success">0</span>
-                            </div>
-
-                        </div>
-                    </div>
-
-                </div>
             </div>
 
             <!-- 📋 TABLE -->
             <div class="table-responsive">
-                <table id="datatable5" class="table table-hover table-bordered align-middle">
+                <table class="table table-hover table-bordered align-middle">
 
                     <thead>
                         <tr style="background:#556ee6;color:white;">
-                            <th style="width: 5%;">#</th>
-                            <th>เลขที่เอกสาร / รายการ</th>
-                            <th style="width: 15%;">สถานะ</th>
-                            <th style="width: 15%;">จัดการ</th>
+                            <th>เลขที่เอกสาร</th>
+                            <th>สาขา</th>
+                            <th>ประเภท</th>
+                            <th>มูลค่า</th>
+                            <th>สถานะ</th>
                         </tr>
                     </thead>
 
                     <tbody>
-                        <tr>
-                            <td class="text-center">1</td>
-                            <td>DR-2026-0001 สินค้าชำรุด</td>
-                            <td class="text-center">
-                                <span class="badge bg-warning">รออนุมัติ</span>
-                            </td>
-                            <td class="text-center">
-                                <button class="btn btn-sm btn-outline-primary">ดูรายละเอียด</button>
-                            </td>
-                        </tr>
+                        @forelse($reports as $r)
+                            <tr>
+                                <td>{{ $r->doc_no }}</td>
+                                <td>{{ $r->branch_code }}</td>
+                                <td>{{ $r->report_type }}</td>
+                                <td>{{ number_format($r->total_amount, 2) }}</td>
+                                <td class="text-center">
+                                    @if ($r->status == 'pending')
+                                        <span class="badge bg-warning">รออนุมัติ</span>
+                                    @elseif($r->status == 'process')
+                                        <span class="badge bg-info">กำลังดำเนินการ</span>
+                                    @elseif($r->status == 'success')
+                                        <span class="badge bg-success">เสร็จสิ้น</span>
+                                    @else
+                                        <span class="badge bg-secondary">{{ $r->status }}</span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5" class="text-center">ไม่มีข้อมูล</td>
+                            </tr>
+                        @endforelse
                     </tbody>
 
                 </table>
@@ -443,7 +427,7 @@
                 method: 'POST',
                 data: {
                     _token: '{{ csrf_token() }}', // ✅ ต้องมี
-                    branch_code: 'TEST',
+                    branch_code: $('#branch_code').val(),
                     report_type: $('input[name="report_type"]:checked').val(),
                     product_type: $('input[name="product_type"]:checked').val(),
                     damage_reason: $('textarea').val(),

@@ -469,6 +469,22 @@
             <div class="collapse navbar-collapse" id="topnav-menu-content">
                 <ul class="navbar-nav">
 
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('dashboard') }}">
+                            <i class="fas fa-pencil-alt me-2"></i>
+                            dashboard
+                            <div class="arrow-down"></div>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('damage-report') }}">
+                            <i class="fas fa-pencil-alt me-2"></i>
+                            ระบบใบแจ้งสินค้าทำลาย
+                            <div class="arrow-down"></div>
+                        </a>
+                    </li>
+
                     {{-- <li class="nav-item dropdown">
 
                         <a class="nav-link dropdown-toggle" href="#" id="requireDropdown" role="button"
@@ -479,10 +495,10 @@
                             <div class="arrow-down"></div>
                         </a> --}}
 
-                        {{-- <ul class="dropdown-menu" aria-labelledby="requireDropdown"> --}}
+                    {{-- <ul class="dropdown-menu" aria-labelledby="requireDropdown"> --}}
 
-                            {{-- หน้า Assign (ใช้หน้าเดิม) --}}
-                            {{-- <li>
+                    {{-- หน้า Assign (ใช้หน้าเดิม) --}}
+                    {{-- <li>
                                 <a class="dropdown-item" href="{{ route('require_ticket') }}">
                                     Assign @if (Count_Complete() != 0)
                                         <span style="color:red">({{ Count_Complete() }})</span>
@@ -490,22 +506,22 @@
                                 </a>
                             </li> --}}
 
-                            {{-- ประกาศ --}}
-                            {{-- <li>
+                    {{-- ประกาศ --}}
+                    {{-- <li>
                                 <a class="dropdown-item" href="{{ route('announcements.index') }}">
                                     Announce
                                 </a>
                             </li> --}}
 
-                            {{-- ถามตอบ --}}
-                            {{-- <li>
+                    {{-- ถามตอบ --}}
+                    {{-- <li>
                                 <a class="dropdown-item" href="{{ route('require.question') }}">
                                     Q&A
                                 </a>
                             </li> --}}
 
-                            {{-- Memo --}}
-                            {{-- <li>
+                    {{-- Memo --}}
+                    {{-- <li>
                                 <a class="dropdown-item" href="{{ route('memo.index') }}">
                                     Memo @if (CountMemo() > 0)
                                         <span style="color:red"> ({{ CountMemo() }})</span>
@@ -513,7 +529,7 @@
                                 </a>
                             </li> --}}
 
-                        {{-- </ul>
+                    {{-- </ul>
                     </li> --}}
 
 
@@ -527,7 +543,7 @@
                             <div class="arrow-down"></div>
                         </a> --}}
 
-                        {{-- <ul class="dropdown-menu" aria-labelledby="requireDropdown">
+                    {{-- <ul class="dropdown-menu" aria-labelledby="requireDropdown">
                             <li>
                                 <a class="dropdown-item" href="{{ route('request_ticket') }}">
                                     Assign @if (Auth::user()->role == 'manager' && Count_Pending() != 0)

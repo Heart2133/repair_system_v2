@@ -4,14 +4,32 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Models\DamageReport;
 
 class DamageReportController extends Controller
 {
     public function index()
     {
-        $reports = DB::table('damage_reports')->get();
-        return view('damage.index', compact('reports'));
+        $total = DamageReport::count();
+        $pending = DamageReport::where('status', 'pending')->count();
+        $process = DamageReport::where('status', 'process')->count();
+        $success = DamageReport::where('status', 'success')->count();
+
+        $reports = DamageReport::latest()->get();
+
+        return view('home', compact(
+            'total',
+            'pending',
+            'process',
+            'success',
+            'reports'
+        ));
     }
+    // public function index()
+    // {
+    //     $reports = DB::table('damage_reports')->get();
+    //     return view('home', compact('reports'));
+    // }
 
     public function store(Request $request)
     {
