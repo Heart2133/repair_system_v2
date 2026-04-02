@@ -320,7 +320,7 @@
                         </tr>
                     </thead>
 
-                    {{-- <tbody>
+                    <tbody>
                         <tr>
                             <td class="text-center">1</td>
                             <td>DR-2026-0001 สินค้าชำรุด</td>
@@ -331,7 +331,7 @@
                                 <button class="btn btn-sm btn-outline-primary">ดูรายละเอียด</button>
                             </td>
                         </tr>
-                    </tbody> --}}
+                    </tbody>
 
                 </table>
             </div>
