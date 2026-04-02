@@ -55,14 +55,16 @@
 
                                     <!-- ประเภทผู้แจ้ง -->
                                     <div class="mb-3">
-                                        <label>ประเภทผู้แจ้ง *</label>
+                                        <label>ประเภทผู้แจ้ง<span class="text-danger">*</span></label>
                                         <div class="d-flex gap-3">
                                             <div class="form-check">
-                                                <input type="radio" class="form-check-input" name="report_type">
+                                                <input type="radio" class="form-check-input" name="report_type"
+                                                    value="branch">
                                                 <label class="form-check-label">สาขาแจ้ง</label>
                                             </div>
                                             <div class="form-check">
-                                                <input type="radio" class="form-check-input" name="report_type">
+                                                <input type="radio" class="form-check-input" name="report_type"
+                                                    value="customer">
                                                 <label class="form-check-label">ลูกค้าแจ้ง</label>
                                             </div>
                                         </div>
@@ -70,14 +72,16 @@
 
                                     <!-- ประเภทสินค้า -->
                                     <div class="mb-3">
-                                        <label>ประเภทสินค้า *</label>
+                                        <label>ประเภทสินค้า <span class="text-danger">*</span></label>
                                         <div class="d-flex gap-3">
                                             <div class="form-check">
-                                                <input type="radio" class="form-check-input" name="product_type">
+                                                <input type="radio" class="form-check-input" name="product_type"
+                                                    value="domestic">
                                                 <label class="form-check-label">ในประเทศ</label>
                                             </div>
                                             <div class="form-check">
-                                                <input type="radio" class="form-check-input" name="product_type">
+                                                <input type="radio" class="form-check-input" name="product_type"
+                                                    value="international">
                                                 <label class="form-check-label">นอกประเทศ</label>
                                             </div>
                                         </div>
@@ -86,7 +90,7 @@
                                     <!-- สาขา + วันที่ -->
                                     <div class="row">
                                         <div class="col-md-6 mb-3">
-                                            <label>สาขา *</label>
+                                            <label>สาขา <span class="text-danger">*</span></label>
                                             @if (Auth::user()->role == 'admin')
                                                 <select class="form-select">
                                                     <option value="">-- เลือก --</option>
@@ -111,7 +115,7 @@
 
                                     <!-- สาเหตุ -->
                                     <div class="mb-3">
-                                        <label>สาเหตุความเสียหาย *</label>
+                                        <label>สาเหตุความเสียหาย <span class="text-danger">*</span></label>
                                         <textarea class="form-control" rows="4"></textarea>
                                     </div>
 
@@ -178,17 +182,19 @@
                                         <div class="row mb-2 employee-row">
                                             <div class="col-md-4">
                                                 <label>รหัสพนักงาน</label>
-                                                <input type="text" class="form-control emp_code">
+                                                <input type="text" class="form-control emp_code"
+                                                    placeholder="รหัสพนักงาน">
                                             </div>
 
                                             <div class="col-md-4">
                                                 <label>ชื่อพนักงาน</label>
-                                                <input type="text" class="form-control emp_name">
+                                                <input type="text" class="form-control emp_name"
+                                                    placeholder="ชื่อพนักงาน">
                                             </div>
 
                                             <div class="col-md-3">
                                                 <label>% ความรับผิดชอบ</label>
-                                                <input type="number" class="form-control emp_percent">
+                                                <input type="number" class="form-control emp_percent" placeholder="%">
                                             </div>
 
                                             <div class="col-md-1 d-flex align-items-end">
@@ -221,39 +227,115 @@
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-lg-12">
-            <div class="card">
-                <div class="card-body border-bottom"
-                    style="display: flex; justify-content: space-between; align-items: center;">
-                    <div style="margin-right: auto;color:black;font-size:14px;">งานคำร้อง</div>
-                    <a href="#" class="btn btn-success BTNadd" style="margin-left: auto;">
-                        เพิ่มใบแจ้งงาน
-                    </a>
-                </div>
-                <div class="card border border-light" style="padding: 20px;margin: 0px;">
-                    <div class="table-responsive">
-                        <table id="datatable5" class="table table-bordered">
-                            <thead>
-                                <tr style="background:#556ee6;color:white;">
-                                    <th scope="col">#</th>
-                                    <th scope="col">ชื่อเรื่อง</th>
-                                    <th scope="col">สถานะ </th>
-                                    <th scope="col">จัดการ</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>1</td>
-                                    <td>คอมจอฟ้า</td>
-                                    <td>pending</td>
-                                    <td>gg</td>
-                                </tr>
-                            </tbody>
-                        </table>
+
+
+    <div class="card shadow-sm">
+
+        <!-- 🔷 HEADER -->
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">ระบบจัดการใบแจ้งสินค้าทำลาย</h5>
+            <button type="button" class="btn btn-primary BTNadd">
+                + สร้างรายการใหม่
+            </button>
+        </div>
+
+        <!-- 🔷 BODY -->
+        <div class="card-body">
+
+            <!-- 📊 SUMMARY -->
+            <div class="row mb-4">
+
+                <div class="col-md-3">
+                    <div class="border rounded p-3 text-center">
+                        <div class="text-muted">รายการใหม่</div>
+                        <h4 class="mb-0">0</h4>
                     </div>
                 </div>
+
+                <div class="col-md-3">
+                    <div class="border rounded p-3 text-center">
+                        <div class="text-muted">รออนุมัติ</div>
+                        <h4 class="mb-0 text-warning">0</h4>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="border rounded p-3 text-center">
+                        <div class="text-muted">อยู่ระหว่างดำเนินการ</div>
+                        <h4 class="mb-0 text-info">0</h4>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="border rounded p-3 text-center">
+                        <div class="text-muted">เสร็จสิ้น</div>
+                        <h4 class="mb-0 text-success">0</h4>
+                    </div>
+                </div>
+
             </div>
+
+            <!-- 📌 MY TASK -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+
+                    <div class="card border">
+                        <div class="card-header bg-light">
+                            <strong>งานที่ต้องดำเนินการ</strong>
+                        </div>
+
+                        <div class="card-body">
+
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>รออนุมัติ</span>
+                                <span class="badge bg-danger">0</span>
+                            </div>
+
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>รอดำเนินการ SAP</span>
+                                <span class="badge bg-warning">0</span>
+                            </div>
+
+                            <div class="d-flex justify-content-between">
+                                <span>อยู่ระหว่างดำเนินการ</span>
+                                <span class="badge bg-success">0</span>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- 📋 TABLE -->
+            <div class="table-responsive">
+                <table id="datatable5" class="table table-hover table-bordered align-middle">
+
+                    <thead>
+                        <tr style="background:#556ee6;color:white;">
+                            <th style="width: 5%;">#</th>
+                            <th>เลขที่เอกสาร / รายการ</th>
+                            <th style="width: 15%;">สถานะ</th>
+                            <th style="width: 15%;">จัดการ</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <tr>
+                            <td class="text-center">1</td>
+                            <td>DR-2026-0001 สินค้าชำรุด</td>
+                            <td class="text-center">
+                                <span class="badge bg-warning">รออนุมัติ</span>
+                            </td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-outline-primary">ดูรายละเอียด</button>
+                            </td>
+                        </tr>
+                    </tbody>
+
+                </table>
+            </div>
+
         </div>
     </div>
 @endsection
@@ -289,43 +371,19 @@
             });
         });
 
-        $('#add-employee').click(function() {
-            let row = `
-    <div class="row mb-2 employee-row">
-        <div class="col-md-4">
-            <input type="text" class="form-control emp_code">
-        </div>
-        <div class="col-md-4">
-            <input type="text" class="form-control emp_name">
-        </div>
-        <div class="col-md-3">
-            <input type="number" class="form-control emp_percent">
-        </div>
-        <div class="col-md-1 d-flex align-items-end">
-            <button type="button" class="btn btn-danger btn-sm btn-remove">X</button>
-        </div>
-    </div>`;
-
-            $('#employee-wrapper').append(row);
-        });
-
-        $(document).on('click', '.btn-remove', function() {
-            $(this).closest('.employee-row').remove();
-        });
-
         $(document).on('change', '.emp_code', function() {
             let code = $(this).val();
             let row = $(this).closest('.employee-row');
 
-            $.ajax({
-                url: '/api/employee/' + code,
-                success: function(res) {
-                    if (res) {
-                        row.find('.emp_name').val(res.name);
-                    } else {
-                        row.find('.emp_name').val('');
-                        alert('ไม่พบพนักงาน กรุณากรอกชื่อเอง');
-                    }
+            $.get('/repair_system_v2/get-employee', {
+                code: code
+            }, function(res) {
+
+                if (res && res.emp_name) {
+                    row.find('.emp_name').val(res.emp_name);
+                } else {
+                    row.find('.emp_name').val('');
+                    alert('ไม่พบพนักงาน');
                 }
             });
         });
@@ -358,17 +416,69 @@
                 return;
             }
 
-            // 👉 ผ่านแล้ว ค่อย submit
-            alert('ผ่านแล้ว บันทึกได้');
+            // 📦 เตรียมข้อมูลสินค้า
+            let items = [{
+                product_code: $('#product_code').val(),
+                product_name: $('#product_name').val(),
+                price: $('#price').val(),
+                qty: $('#qty').val(),
+                total: $('#total').val()
+            }];
 
-            // ตัวอย่าง submit
-            // $('#form-id').submit();
+            // 👨‍💼 เตรียมข้อมูลพนักงาน
+            let employees = [];
+
+            $('.employee-row').each(function() {
+                employees.push({
+                    emp_code: $(this).find('.emp_code').val(),
+                    emp_name: $(this).find('.emp_name').val(),
+                    percent: $(this).find('.emp_percent').val(),
+                    amount: ($(this).find('.emp_percent').val() / 100) * $('#total').val()
+                });
+            });
+
+            // 🚀 ยิง API
+            $.ajax({
+                url: '/repair_system_v2/damage-report/store',
+                method: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}', // ✅ ต้องมี
+                    branch_code: 'TEST',
+                    report_type: $('input[name="report_type"]:checked').val(),
+                    product_type: $('input[name="product_type"]:checked').val(),
+                    damage_reason: $('textarea').val(),
+                    total_amount: $('#total').val(),
+                    items: items,
+                    employees: employees
+                },
+                success: function(res) {
+                    if (res.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'บันทึกสำเร็จ',
+                            text: 'ข้อมูลถูกบันทึกเรียบร้อยแล้ว',
+                            confirmButtonText: 'ตกลง',
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                location.reload(); // รีเฟรชหน้า
+                            }
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'เกิดข้อผิดพลาด',
+                            text: res.error,
+                            confirmButtonText: 'ตกลง',
+                        });
+                    }
+                },
+            });
         });
 
         $('#product_code').on('change', function() {
             let code = $(this).val();
 
-            $.get('/get-product', {
+            $.get('/repair_system_v2/get-product', {
                 code: code
             }, function(res) {
                 $('#product_name').val(res.product_name);
@@ -376,37 +486,40 @@
             });
         });
 
-        $(document).on('change', '.emp_code', function() {
-            let code = $(this).val();
-            let row = $(this).closest('.employee-row');
 
-            $.get('/get-employee', {
-                code: code
-            }, function(res) {
-                row.find('.emp_name').val(res.fullname);
-            });
-        });
 
         function validateForm() {
 
             // ✅ 1. ตรวจข้อมูลพื้นฐาน
             if (!$('input[name="report_type"]:checked').val()) {
-                alert('กรุณาเลือกประเภทผู้แจ้ง');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'กรุณาเลือกประเภทผู้แจ้ง'
+                });
                 return false;
             }
 
             if (!$('input[name="product_type"]:checked').val()) {
-                alert('กรุณาเลือกประเภทสินค้า');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'กรุณาเลือกประเภทสินค้า'
+                });
                 return false;
             }
 
             if (!$('#product_code').val()) {
-                alert('กรุณากรอกรหัสสินค้า');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'กรุณากรอกรหัสสินค้า'
+                });
                 return false;
             }
 
             if (!$('#qty').val()) {
-                alert('กรุณากรอกจำนวนสินค้า');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'กรุณากรอกจำนวนสินค้า'
+                });
                 return false;
             }
 
@@ -423,7 +536,10 @@
             });
 
             if (!hasEmployee) {
-                alert('กรุณาเพิ่มพนักงานอย่างน้อย 1 คน');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'กรุณาเพิ่มพนักงานอย่างน้อย 1 คน'
+                });
                 return false;
             }
 
@@ -435,7 +551,11 @@
             });
 
             if (totalPercent !== 100) {
-                alert('เปอร์เซ็นต์รวมต้องเท่ากับ 100%');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'เปอร์เซ็นต์ไม่ถูกต้อง',
+                    text: 'เปอร์เซ็นต์รวมต้องเท่ากับ 100%'
+                });
                 return false;
             }
 
@@ -448,13 +568,87 @@
                 totalEmpAmount += (percent / 100) * totalProduct;
             });
 
-            // ปัดเศษกัน error ทศนิยม
             if (Math.round(totalEmpAmount) !== Math.round(totalProduct)) {
-                alert('มูลค่าความรับผิดชอบไม่ตรงกับราคาสินค้า');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'มูลค่าไม่ตรง',
+                    text: 'มูลค่าความรับผิดชอบไม่ตรงกับราคาสินค้า'
+                });
                 return false;
             }
 
             return true;
         }
+
+        $('#qty, #price').on('keyup change', function() {
+            let price = parseFloat($('#price').val()) || 0;
+            let qty = parseFloat($('#qty').val()) || 0;
+
+            $('#total').val(price * qty);
+        });
+
+        $(document).on('click', '#add-employee', function() {
+
+            let newRow = `
+        <div class="row mb-2 employee-row">
+            <div class="col-md-4">
+                <input type="text" class="form-control emp_code" placeholder="รหัสพนักงาน">
+            </div>
+
+            <div class="col-md-4">
+                <input type="text" class="form-control emp_name" placeholder="ชื่อพนักงาน">
+            </div>
+
+            <div class="col-md-3">
+                <input type="number" class="form-control emp_percent" placeholder="%">
+            </div>
+
+            <div class="col-md-1 d-flex align-items-end">
+                <button type="button" class="btn btn-danger btn-sm btn-remove">X</button>
+            </div>
+        </div>
+    `;
+
+            $('#employee-wrapper').append(newRow);
+        });
+
+        $(document).on('click', '.btn-remove', function() {
+            let row = $(this).closest('.employee-row');
+
+            // เช็คว่าต้องมีอย่างน้อย 1 คน
+            if ($('.employee-row').length <= 1) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'ไม่สามารถลบได้',
+                    text: 'ต้องมีพนักงานอย่างน้อย 1 คน'
+                });
+                return;
+            }
+
+            // Confirm ก่อนลบ
+            Swal.fire({
+                title: 'ยืนยันการลบ?',
+                text: 'คุณต้องการลบพนักงานคนนี้หรือไม่',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'ใช่, ลบเลย',
+                cancelButtonText: 'ยกเลิก',
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d'
+            }).then((result) => {
+                if (result.isConfirmed) {
+
+                    row.remove();
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'ลบเรียบร้อย',
+                        timer: 1200,
+                        showConfirmButton: false
+                    });
+
+                }
+            });
+        });
     </script>
 @endsection

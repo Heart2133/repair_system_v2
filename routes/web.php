@@ -26,6 +26,7 @@ Route::post('/damage-report/store', [DamageReportController::class, 'store']);
 Route::get('/get-product', [DamageReportController::class, 'getProduct']);
 Route::get('/get-employee', [DamageReportController::class, 'getEmployee']);
 
+
 // Route::get('/storage-link', function () {
 //     // ลบลิงก์เดิมก่อน (ถ้ามี)
 //     $link = public_path('storage');
@@ -62,9 +63,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/deleteUser', [App\Http\Controllers\SettingController::class, 'deleteUser'])->name('deleteUser');
     Route::get('/user-add', [SettingController::class, 'user_add'])->name('user_add');
     Route::get('/get-type-by-section', [SettingController::class, 'getTypeBySection'])->name('getTypeBySection');
-   
 
-   
+
+
 
     // Route::post('/user-add/store', [UserController::class, 'store'])->name('user_add.store');
     Route::get('/user-edit', [App\Http\Controllers\SettingController::class, 'user_edit'])->name('user_edit');
@@ -73,13 +74,13 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/userblock', [App\Http\Controllers\SettingController::class, 'userblock'])->name('userblock');
 
 
-    
 
-   
+
+
     Route::get('/sections/by-branch', [SettingController::class, 'sectionsByBranch'])->name('sections-byBranch');
     Route::get('/departments-by-section', [SettingController::class, 'departmentsBySection'])->name('departments-bySection');
 
-    
+
 
     Route::get('/type-request', [SettingController::class, 'type_request_manage'])->name('type_request_manage');
 
