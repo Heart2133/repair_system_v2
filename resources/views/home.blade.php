@@ -96,7 +96,7 @@
                                                     <option value="">-- เลือก --</option>
                                                     @foreach (getBranchAll() as $item)
                                                         <option value="{{ $item->branch_code }}">
-                                                            {{ $item->branch_code }}
+                                                            {{ $item->branch_code }} - {{ $item->branch_desc }}
                                                         </option>
                                                     @endforeach
                                                 </select>
@@ -295,7 +295,7 @@
                         @forelse($reports as $r)
                             <tr>
                                 <td>{{ $r->doc_no }}</td>
-                                <td>{{ $r->branch_code }}</td>
+                                <td>{{ $r->branch->branch_desc ?? '-' }}</td>
                                 <td>{{ $r->report_type }}</td>
                                 <td>{{ number_format($r->total_amount, 2) }}</td>
                                 <td class="text-center">

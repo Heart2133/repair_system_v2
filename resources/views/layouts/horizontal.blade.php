@@ -471,20 +471,32 @@
 
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('dashboard') }}">
-                            <i class="fas fa-pencil-alt me-2"></i>
-                            dashboard
-                            <div class="arrow-down"></div>
+                            <i class="fas fa-home me-2"></i>
+                            Dashboard
                         </a>
                     </li>
 
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('damage-report') }}">
-                            <i class="fas fa-pencil-alt me-2"></i>
+                            <i class="fas fa-exclamation-triangle me-2"></i>
                             ระบบใบแจ้งสินค้าทำลาย
                             <div class="arrow-down"></div>
                         </a>
                     </li>
 
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('manager-approve') }}">
+                            <i class="fas fa-user-check me-2"></i>
+                            อนุมัติ (Manager)
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="/repair_system_v2/admin-approve">
+                            <i class="fas fa-user-shield me-2"></i>
+                            ผู้บริหารอนุมัติ
+                        </a>
+                    </li>
                     {{-- <li class="nav-item dropdown">
 
                         <a class="nav-link dropdown-toggle" href="#" id="requireDropdown" role="button"

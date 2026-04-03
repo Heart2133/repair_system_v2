@@ -38,10 +38,24 @@ class DamageReportController extends Controller
 
         try {
 
+            // ✅ generate doc_no
+            $today = date('Ymd');
+
+            $last = DB::table('damage_reports')
+                ->whereDate('created_at', date('Y-m-d'))
+                ->where('doc_no', 'like', 'DR' . $today . '%')
+                ->orderBy('doc_no', 'desc')
+                ->first();
+
+            $running = $last ? intval(substr($last->doc_no, -4)) + 1 : 1;
+
+            $doc_no = 'DR' . $today . str_pad($running, 4, '0', STR_PAD_LEFT);
+
+
             // 1. บันทึก header
             $reportId = DB::table('damage_reports')->insertGetId([
-                'doc_no' => 'DR' . date('YmdHis'),
-                'branch_code' => $request->branch_code,
+                'doc_no' => $doc_no, // ✅ ใช้ตัวใหม่
+                'branch_code' => $request->branch_code, // ✅ แก้จาก branch_desc
                 'report_type' => $request->report_type,
                 'product_type' => $request->product_type,
                 'damage_reason' => $request->damage_reason,
@@ -81,6 +95,47 @@ class DamageReportController extends Controller
                     ]);
                 }
             }
+
+            DB::commit();
+
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['error' => $e->getMessage()]);
+        }
+    }
+
+    public function destroyStore(Request $request)
+    {
+        DB::beginTransaction();
+
+        try {
+
+            // 1. save header
+            $destroyId = DB::table('damage_destroy')->insertGetId([
+                'damage_report_id' => $request->report_id,
+                'location' => $request->location,
+                'destroy_date' => $request->destroy_date,
+                'remark' => $request->remark,
+                'created_by' => auth()->id(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            // 2. upload images
+            if ($request->hasFile('images')) {
+                foreach ($request->file('images') as $file) {
+
+                    $path = $file->store('destroy_images', 'public');
+
+                    DB::table('damage_destroy_images')->insert([
+                        'destroy_id' => $destroyId,
+                        'image_path' => $path,
+                        'created_at' => now()
+                    ]);
+                }
+            }
+
             DB::commit();
 
             return response()->json(['success' => true]);
@@ -120,5 +175,70 @@ class DamageReportController extends Controller
             'emp_code' => $emp->emp_code,
             'emp_name' => $emp->emp_name
         ]);
+    }
+
+    // หน้า manager
+    public function managerApprove()
+    {
+        $reports = DB::table('damage_reports')
+            ->where('status', 'pending') // รอ manager อนุมัติ
+            ->get();
+
+        return view('manager-approve', compact('reports'));
+    }
+
+    // action approve / reject
+    public function approveAction(Request $request)
+    {
+        try {
+            DB::table('damage_reports')
+                ->where('id', $request->id)
+                ->update([
+                    'status' => $request->action, // success หรือ rejected
+                    'approve_remark' => $request->remark,
+                    'sap_doc' => $request->sap_doc,
+                    'sap_date' => $request->sap_date,
+                    'sap_by' => auth()->id(),
+                    'updated_at' => now(),
+                ]);
+
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ]);
+        }
+    }
+
+    // 📌 หน้า Admin
+    public function adminApprove()
+    {
+        $reports = DB::table('damage_reports')
+            ->where('status', 'process') // 🔥 ต้องเป็น process
+            ->get();
+
+        return view('admin-approve', compact('reports'));
+    }
+
+    public function adminAction(Request $request)
+    {
+        DB::table('damage_reports')
+            ->where('id', $request->id)
+            ->update([
+                'status' => $request->action, // approved หรือ rejected
+                'approve_remark' => $request->remark,
+                'approved_by' => auth()->id(),
+                'approved_at' => now(),
+            ]);
+
+        return response()->json(['success' => true]);
+    }
+
+    public function destroyForm($id)
+    {
+        $report = DB::table('damage_reports')->where('id', $id)->first();
+
+        return view('destroy-form', compact('report'));
     }
 }
