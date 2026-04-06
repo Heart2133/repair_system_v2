@@ -59,7 +59,7 @@
                 return;
             }
 
-            $.post('/repair_system_v2/damage-report/admin-action', {
+            $.post("{{ route('damage.admin.action') }}", {
                 _token: '{{ csrf_token() }}',
                 id: id,
                 action: 'approved',

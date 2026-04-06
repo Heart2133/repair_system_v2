@@ -99,7 +99,7 @@ class LoginController extends Controller
         // if (Auth::user()->role == "admin") {
             // echo 'admin';
             // exit;
-            return redirect()->intended($this->redirectTo);
+            return redirect('/damage-report');
         // } else {
         //     // echo 'another';
         //     // exit;

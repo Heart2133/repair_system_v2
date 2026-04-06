@@ -469,12 +469,12 @@
             <div class="collapse navbar-collapse" id="topnav-menu-content">
                 <ul class="navbar-nav">
 
-                    <li class="nav-item">
+                    {{-- <li class="nav-item">
                         <a class="nav-link" href="{{ route('dashboard') }}">
                             <i class="fas fa-home me-2"></i>
                             Dashboard
                         </a>
-                    </li>
+                    </li> --}}
 
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('damage-report') }}">
