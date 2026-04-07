@@ -136,6 +136,13 @@ class DamageReportController extends Controller
                 }
             }
 
+            DB::table('damage_reports')
+                ->where('id', $request->report_id)
+                ->update([
+                    'status' => 'waiting_account',
+                    'updated_at' => now(),
+                ]);
+
             DB::commit();
 
             return response()->json(['success' => true]);
@@ -191,19 +198,33 @@ class DamageReportController extends Controller
     public function approveAction(Request $request)
     {
         try {
-            DB::table('damage_reports')
-                ->where('id', $request->id)
-                ->update([
-                    'status' => $request->action, // success หรือ rejected
-                    'approve_remark' => $request->remark,
-                    'sap_doc' => $request->sap_doc,
-                    'sap_date' => $request->sap_date,
-                    'sap_by' => auth()->id(),
-                    'updated_at' => now(),
-                ]);
+            if ($request->action == 'approved_manager') {
+
+                DB::table('damage_reports')
+                    ->where('id', $request->id)
+                    ->update([
+                        'status' => 'approved_manager', // 🔥 ส่งต่อ admin
+                        'approved_manager_by' => auth()->id(),
+                        'approved_manager_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+            }
+
+            // ❌ Manager ไม่อนุมัติ
+            elseif ($request->action == 'rejected') {
+
+                DB::table('damage_reports')
+                    ->where('id', $request->id)
+                    ->update([
+                        'status' => 'rejected',
+                        'approve_remark' => $request->remark,
+                        'updated_at' => now(),
+                    ]);
+            }
 
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
+
             return response()->json([
                 'success' => false,
                 'error' => $e->getMessage()
@@ -215,30 +236,130 @@ class DamageReportController extends Controller
     public function adminApprove()
     {
         $reports = DB::table('damage_reports')
-            ->where('status', 'process') // 🔥 ต้องเป็น process
+            ->where('status', 'approved_manager') // 🔥 ต้องเป็น process
             ->get();
 
         return view('admin-approve', compact('reports'));
     }
 
+    // public function adminAction(Request $request)
+    // {
+    //     DB::table('damage_reports')
+    //         ->where('id', $request->id)
+    //         ->update([
+    //             'status' => $request->action, // approved หรือ rejected
+    //             'approve_remark' => $request->remark,
+    //             'approved_by' => auth()->id(),
+    //             'approved_at' => now(),
+    //         ]);
+
+    //     return response()->json(['success' => true]);
+    // }
     public function adminAction(Request $request)
     {
-        DB::table('damage_reports')
-            ->where('id', $request->id)
-            ->update([
-                'status' => $request->action, // approved หรือ rejected
-                'approve_remark' => $request->remark,
-                'approved_by' => auth()->id(),
-                'approved_at' => now(),
-            ]);
+        try {
 
-        return response()->json(['success' => true]);
+            if ($request->action == 'approved') {
+
+                DB::table('damage_reports')
+                    ->where('id', $request->id)
+                    ->update([
+                        'status' => 'waiting_branch_sap',
+                        'approved_admin_by' => auth()->id(),
+                        'approved_admin_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+            } elseif ($request->action == 'rejected') {
+
+                DB::table('damage_reports')
+                    ->where('id', $request->id)
+                    ->update([
+                        'status' => 'rejected',
+                        'approve_remark' => $request->remark,
+                        'updated_at' => now(),
+                    ]);
+            }
+
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ]);
+        }
     }
 
     public function destroyForm($id)
     {
         $report = DB::table('damage_reports')->where('id', $id)->first();
 
+
         return view('destroy-form', compact('report'));
+    }
+
+    public function destroyList()
+    {
+        $reports = DB::table('damage_reports')
+            ->where('status', 'sap_completed')
+            ->get();
+
+        return view('destroy-list', compact('reports'));
+    }
+
+    public function destroyPrint($id)
+{
+    $report = DB::table('damage_reports')->where('id', $id)->first();
+
+    $items = DB::table('damage_report_items')
+        ->where('damage_report_id', $id)
+        ->get();
+
+    $destroy = DB::table('damage_destroy')
+        ->where('damage_report_id', $id)
+        ->first();
+
+    return view('destroy-print', compact('report', 'items', 'destroy'));
+}
+    
+
+    public function branchSap()
+    {
+        $reports = DB::table('damage_reports')
+            ->where('status', 'waiting_branch_sap')
+            ->get();
+
+        return view('branch-sap', compact('reports'));
+    }
+
+    public function branchSapSave(Request $request)
+    {
+        try {
+
+            if (!$request->sap_doc || !$request->sap_date) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'กรุณากรอก SAP Doc และวันที่'
+                ]);
+            }
+
+            DB::table('damage_reports')
+                ->where('id', $request->id)
+                ->update([
+                    'sap_doc' => $request->sap_doc,
+                    'sap_date' => $request->sap_date,
+                    'sap_by' => auth()->id(),
+
+                    'status' => 'sap_completed',
+                    'updated_at' => now(),
+                ]);
+
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ]);
+        }
     }
 }

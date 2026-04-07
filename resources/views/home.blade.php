@@ -287,6 +287,8 @@
                             <th>สาขา</th>
                             <th>ประเภท</th>
                             <th>มูลค่า</th>
+                            <th>ส่วนลด</th>
+                            <th>ราคาขาย</th>
                             <th>สถานะ</th>
                         </tr>
                     </thead>
@@ -298,6 +300,21 @@
                                 <td>{{ $r->branch->branch_desc ?? '-' }}</td>
                                 <td>{{ $r->report_type }}</td>
                                 <td>{{ number_format($r->total_amount, 2) }}</td>
+                                <td>
+                                    @if ($r->discount_percent)
+                                        {{ $r->discount_percent }}%
+                                    @else
+                                        -
+                                    @endif
+                                </td>
+
+                                <td>
+                                    @if ($r->final_price)
+                                        {{ number_format($r->final_price, 2) }}
+                                    @else
+                                        -
+                                    @endif
+                                </td>
                                 <td class="text-center">
                                     @if ($r->status == 'pending')
                                         <span class="badge bg-warning">รออนุมัติ</span>
@@ -359,7 +376,7 @@
             let code = $(this).val();
             let row = $(this).closest('.employee-row');
 
-            $.get('/repair_system_v2/get-employee', {
+            $.get("{{ url('get-employee') }}", {
                 code: code
             }, function(res) {
 
@@ -423,7 +440,7 @@
 
             // 🚀 ยิง API
             $.ajax({
-                url: '/repair_system_v2/damage-report/store',
+                url: "{{ url('damage-report/store') }}",
                 method: 'POST',
                 data: {
                     _token: '{{ csrf_token() }}', // ✅ ต้องมี
@@ -462,15 +479,13 @@
         $('#product_code').on('change', function() {
             let code = $(this).val();
 
-            $.get('/repair_system_v2/get-product', {
+            $.get("{{ url('get-product') }}", {
                 code: code
             }, function(res) {
                 $('#product_name').val(res.product_name);
                 $('#price').val(res.price);
             });
         });
-
-
 
         function validateForm() {
 

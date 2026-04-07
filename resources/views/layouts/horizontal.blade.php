@@ -492,11 +492,27 @@
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" href="/repair_system_v2/admin-approve">
+                        <a class="nav-link" href="{{ route('admin-approve') }}">
                             <i class="fas fa-user-shield me-2"></i>
                             ผู้บริหารอนุมัติ
                         </a>
                     </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('branch.sap') }}">
+                            <i class="fas fa-file-alt me-2"></i>
+                            บันทึก SAP (สาขา)
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('destroy.list') }}">
+                            <i class="fas fa-fire me-2"></i>
+                            ทำลายสินค้า
+                        </a>
+                    </li>
+
+
                     {{-- <li class="nav-item dropdown">
 
                         <a class="nav-link dropdown-toggle" href="#" id="requireDropdown" role="button"

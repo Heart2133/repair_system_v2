@@ -46,21 +46,18 @@
         $('.btn-approve').click(function() {
             let id = $(this).data('id');
 
-           $.post('{{ url("damage-report/approve-action") }}', {
+            $.post('{{ url('damage-report/approve-action') }}', {
                 _token: '{{ csrf_token() }}',
                 id: id,
-                action: 'process', // 🔥 แนะนำเปลี่ยนเป็น process
+                action: 'approved_manager',
                 remark: ''
             }, function(res) {
 
                 Swal.fire({
                     icon: 'success',
                     title: 'อนุมัติสำเร็จ',
-                    text: 'รายการถูกส่งต่อเรียบร้อยแล้ว',
-                    confirmButtonText: 'ตกลง'
-                }).then(() => {
-                    location.reload();
-                });
+                    text: 'ส่งต่อให้ผู้บริหารแล้ว',
+                }).then(() => location.reload());
 
             });
         });
@@ -72,7 +69,7 @@
 
             if (!remark) return;
 
-           $.post('{{ url("damage-report/approve-action") }}', {
+            $.post('{{ url('damage-report/approve-action') }}', {
                 _token: '{{ csrf_token() }}',
                 id: id,
                 action: 'rejected',

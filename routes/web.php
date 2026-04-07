@@ -21,21 +21,29 @@ use App\Http\Controllers\HomeController;
 Auth::routes();
 
 Route::get('/', [App\Http\Controllers\HomeController::class, 'dashboard'])->name('/');
+
 Route::get('/damage-report', [DamageReportController::class, 'index'])->name('damage-report');
 
-// Route::get('/damage-report', [DamageReportController::class, 'index']);
-Route::post('/damage-report/store', [DamageReportController::class, 'store']);
-Route::get('/get-product', [DamageReportController::class, 'getProduct']);
-Route::get('/get-employee', [DamageReportController::class, 'getEmployee']);
-// Route::get('/dashboard', [HomeController::class, 'dashboard'])->name('dashboard');
+Route::post('/damage-report/store', [DamageReportController::class, 'store'])->name('damage.store');
+
+Route::get('/get-product', [DamageReportController::class, 'getProduct'])->name('get.product');
+Route::get('/get-employee', [DamageReportController::class, 'getEmployee'])->name('get.employee');
+
 Route::get('/manager-approve', [DamageReportController::class, 'managerApprove'])->name('manager-approve');
-Route::post('/damage-report/approve-action', [DamageReportController::class, 'approveAction']);
-Route::get('/admin-approve', [DamageReportController::class, 'adminApprove']);
-Route::post('/damage-report/admin-action', [DamageReportController::class, 'adminAction']);
-Route::get('/destroy-form/{id}', [DamageReportController::class, 'destroyForm']);
-Route::post('/destroy-store', [DamageReportController::class, 'destroyStore']);
-Route::post('/damage-report/admin-action', [DamageReportController::class, 'adminAction'])
-    ->name('damage.admin.action');
+Route::post('/damage-report/approve-action', [DamageReportController::class, 'approveAction'])->name('damage.approve.action');
+
+Route::get('/admin-approve', [DamageReportController::class, 'adminApprove'])->name('admin-approve');
+Route::post('/damage-report/admin-action', [DamageReportController::class, 'adminAction'])->name('damage.admin.action');
+
+Route::get('/destroy-list', [DamageReportController::class, 'destroyList'])->name('destroy.list');
+Route::get('/destroy-form/{id}', [DamageReportController::class, 'destroyForm'])->name('destroy.form');
+Route::post('/destroy-store', [DamageReportController::class, 'destroyStore'])->name('destroy.store');
+Route::get('/destroy-print/{id}', [DamageReportController::class, 'destroyPrint'])->name('destroy.print');
+
+Route::get('/branch-sap', [DamageReportController::class, 'branchSap'])->name('branch.sap');
+Route::post('/branch-sap-save', [DamageReportController::class, 'branchSapSave'])->name('branch.sap.save');
+
+
 
 
 
