@@ -506,6 +506,13 @@
                     </li>
 
                     <li class="nav-item">
+                        <a class="nav-link" href="{{ route('hr.approve') }}">
+                            <i class="fas fa-money-bill-wave me-2"></i>
+                            หักเงินเดือน (HR)
+                        </a>
+                    </li>
+
+                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('destroy.list') }}">
                             <i class="fas fa-fire me-2"></i>
                             ทำลายสินค้า

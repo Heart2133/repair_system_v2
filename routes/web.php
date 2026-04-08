@@ -42,6 +42,8 @@ Route::get('/destroy-print/{id}', [DamageReportController::class, 'destroyPrint'
 
 Route::get('/branch-sap', [DamageReportController::class, 'branchSap'])->name('branch.sap');
 Route::post('/branch-sap-save', [DamageReportController::class, 'branchSapSave'])->name('branch.sap.save');
+Route::get('/hr-approve', [DamageReportController::class, 'hrApprove'])->name('hr.approve');
+Route::post('/hr-save', [DamageReportController::class, 'hrSave'])->name('hr.save');
 
 
 

@@ -11,9 +11,18 @@ class DamageReportController extends Controller
     public function index()
     {
         $total = DamageReport::count();
+
         $pending = DamageReport::where('status', 'pending')->count();
-        $process = DamageReport::where('status', 'process')->count();
-        $success = DamageReport::where('status', 'success')->count();
+
+        $process = DamageReport::whereIn('status', [
+            'approved_manager',
+            'waiting_branch_sap',
+            'sap_completed',
+            'accounting_done',
+            'hr_done'
+        ])->count();
+
+        $success = DamageReport::where('status', 'destroy_completed')->count();
 
         $reports = DamageReport::latest()->get();
 
@@ -139,7 +148,7 @@ class DamageReportController extends Controller
             DB::table('damage_reports')
                 ->where('id', $request->report_id)
                 ->update([
-                    'status' => 'waiting_account',
+                    'status' => 'destroy_completed',
                     'updated_at' => now(),
                 ]);
 
@@ -301,27 +310,27 @@ class DamageReportController extends Controller
     public function destroyList()
     {
         $reports = DB::table('damage_reports')
-            ->where('status', 'sap_completed')
+            ->where('status', 'hr_done')
             ->get();
 
         return view('destroy-list', compact('reports'));
     }
 
     public function destroyPrint($id)
-{
-    $report = DB::table('damage_reports')->where('id', $id)->first();
+    {
+        $report = DB::table('damage_reports')->where('id', $id)->first();
 
-    $items = DB::table('damage_report_items')
-        ->where('damage_report_id', $id)
-        ->get();
+        $items = DB::table('damage_report_items')
+            ->where('damage_report_id', $id)
+            ->get();
 
-    $destroy = DB::table('damage_destroy')
-        ->where('damage_report_id', $id)
-        ->first();
+        $destroy = DB::table('damage_destroy')
+            ->where('damage_report_id', $id)
+            ->first();
 
-    return view('destroy-print', compact('report', 'items', 'destroy'));
-}
-    
+        return view('destroy-print', compact('report', 'items', 'destroy'));
+    }
+
 
     public function branchSap()
     {
@@ -343,19 +352,103 @@ class DamageReportController extends Controller
                 ]);
             }
 
+            // ✅ 1. update SAP
             DB::table('damage_reports')
                 ->where('id', $request->id)
                 ->update([
                     'sap_doc' => $request->sap_doc,
                     'sap_date' => $request->sap_date,
                     'sap_by' => auth()->id(),
-
                     'status' => 'sap_completed',
+                    'updated_at' => now(),
+                ]);
+
+            // 🔥 2. ดึงรายการสินค้า
+            $items = DB::table('damage_report_items')
+                ->where('damage_report_id', $request->id)
+                ->get();
+
+            // 🔥 3. บันทึก stock movement (551)
+            foreach ($items as $item) {
+                DB::table('stock_movements')->insert([
+                    'product_code' => $item->product_code,
+                    'qty' => $item->qty,
+                    'movement_type' => '551',
+                    'ref_doc' => $request->sap_doc,
+                    'created_at' => now()
+                ]);
+            }
+
+            // 🔥 เช็คพนักงาน
+            $hasEmployee = DB::table('damage_report_employees')
+                ->where('damage_report_id', $request->id)
+                ->exists();
+
+            // 🔥 set status
+            $status = $hasEmployee ? 'accounting_done' : 'hr_done';
+
+            DB::table('damage_reports')
+                ->where('id', $request->id)
+                ->update([
+                    'status' => $status,
                     'updated_at' => now(),
                 ]);
 
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ]);
+        }
+    }
+
+    public function hrApprove()
+    {
+        $reports = DB::table('damage_reports')
+            ->where('status', 'accounting_done')
+            ->get();
+
+        return view('hr-approve', compact('reports'));
+    }
+
+    public function hrSave(Request $request)
+    {
+        DB::beginTransaction();
+
+        try {
+
+            // 🔹 ดึงพนักงาน
+            $employees = DB::table('damage_report_employees')
+                ->where('damage_report_id', $request->id)
+                ->get();
+
+            foreach ($employees as $emp) {
+
+                // ✅ บันทึกหักเงินเดือน
+                DB::table('salary_deductions')->insert([
+                    'emp_code' => $emp->emp_code,
+                    'amount' => $emp->amount,
+                    'ref_doc' => $request->doc_no,
+                    'created_at' => now()
+                ]);
+            }
+
+            // 🔥 update status
+            DB::table('damage_reports')
+                ->where('id', $request->id)
+                ->update([
+                    'status' => 'hr_done',
+                    'updated_at' => now()
+                ]);
+
+            DB::commit();
+
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+
+            DB::rollBack();
+
             return response()->json([
                 'success' => false,
                 'error' => $e->getMessage()

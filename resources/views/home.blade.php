@@ -139,39 +139,59 @@
                             <!-- 📦 สินค้า -->
                             <div class="card mb-3">
                                 <div class="card-header">ข้อมูลสินค้า</div>
-                                <div class="card-body">
 
-                                    <!-- 🔹 แถวที่ 1 -->
-                                    <div class="row">
-                                        <div class="col-md-6 mb-3">
-                                            <label>รหัสสินค้า</label>
-                                            <input type="text" id="product_code" class="form-control">
-                                        </div>
+                                <div id="product-wrapper">
 
-                                        <div class="col-md-6 mb-3">
-                                            <label>ชื่อสินค้า</label>
-                                            <input type="text" id="product_name" class="form-control" readonly>
+                                    <!-- ✅ 1 row -->
+                                    <div class="product-row mb-3 border rounded p-3">
+                                        <div class="row">
+
+                                            <div class="col-md-10">
+                                                <div class="row mb-2">
+                                                    <div class="col-md-4">
+                                                        <label>รหัสสินค้า</label>
+                                                        <input type="text" class="form-control product_code">
+                                                    </div>
+
+                                                    <div class="col-md-6">
+                                                        <label>ชื่อสินค้า</label>
+                                                        <input type="text" class="form-control product_name" disabled>
+                                                    </div>
+                                                </div>
+
+                                                <div class="row">
+                                                    <div class="col-md-4">
+                                                        <label>ราคาต่อหน่วย</label>
+                                                        <input type="text" class="form-control price" disabled>
+                                                    </div>
+
+                                                    <div class="col-md-4">
+                                                        <label>จำนวน</label>
+                                                        <input type="number" class="form-control qty">
+                                                    </div>
+
+                                                    <div class="col-md-4">
+                                                        <label>ราคารวม</label>
+                                                        <input type="text" class="form-control total" disabled>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-2 d-flex align-items-center justify-content-center">
+                                                <button type="button"
+                                                    class="btn btn-danger btn-remove-product px-3">X</button>
+                                            </div>
+
                                         </div>
                                     </div>
 
-                                    <!-- 🔹 แถวที่ 2 -->
-                                    <div class="row">
-                                        <div class="col-md-4 mb-3">
-                                            <label>ราคาต่อหน่วย</label>
-                                            <input type="text" id="price" class="form-control" readonly>
-                                        </div>
+                                </div>
 
-                                        <div class="col-md-4 mb-3">
-                                            <label>จำนวน</label>
-                                            <input type="number" id="qty" class="form-control">
-                                        </div>
-
-                                        <div class="col-md-4 mb-3">
-                                            <label>ราคารวม</label>
-                                            <input type="text" id="total" class="form-control" readonly>
-                                        </div>
-                                    </div>
-
+                                <!-- ✅ ปุ่มต้องอยู่นอก row -->
+                                <div class="p-3">
+                                    <button type="button" id="add-product" class="btn btn-success btn-sm">
+                                        + เพิ่มสินค้า
+                                    </button>
                                 </div>
                             </div>
 
@@ -316,15 +336,21 @@
                                     @endif
                                 </td>
                                 <td class="text-center">
+
                                     @if ($r->status == 'pending')
                                         <span class="badge bg-warning">รออนุมัติ</span>
-                                    @elseif($r->status == 'process')
+                                    @elseif(in_array($r->status, ['approved_manager', 'waiting_branch_sap', 'sap_completed', 'accounting_done']))
                                         <span class="badge bg-info">กำลังดำเนินการ</span>
-                                    @elseif($r->status == 'success')
+                                    @elseif($r->status == 'hr_done')
+                                        <span class="badge bg-primary">รอทำลาย</span>
+                                    @elseif($r->status == 'destroy_completed')
                                         <span class="badge bg-success">เสร็จสิ้น</span>
+                                    @elseif($r->status == 'rejected')
+                                        <span class="badge bg-danger">ไม่อนุมัติ</span>
                                     @else
                                         <span class="badge bg-secondary">{{ $r->status }}</span>
                                     @endif
+
                                 </td>
                             </tr>
                         @empty
@@ -344,6 +370,26 @@
     <script>
         $(document).on('click', '.BTNadd', function() {
             $('#orderAdd').modal("show");
+        });
+
+        $(document).on('click', '#add-product', function() {
+
+            let row = $('.product-row:first').clone();
+
+            // เคลียร์ค่า
+            row.find('input').val('');
+
+            $('#product-wrapper').append(row);
+        });
+
+        $(document).on('click', '.btn-remove-product', function() {
+
+            if ($('.product-row').length <= 1) {
+                alert('ต้องมีสินค้าอย่างน้อย 1 รายการ');
+                return;
+            }
+
+            $(this).closest('.product-row').remove();
         });
     </script>
     <script>
@@ -400,7 +446,11 @@
         }
 
         function validateAmount() {
-            let totalProduct = parseFloat($('#total').val()) || 0;
+            let totalProduct = 0;
+
+            $('.product-row').each(function() {
+                totalProduct += parseFloat($(this).find('.total').val()) || 0;
+            });
             let totalEmp = 0;
 
             $('.emp_percent').each(function() {
@@ -417,25 +467,41 @@
                 return;
             }
 
+            let grandTotal = 0;
+
+            $('.product-row').each(function() {
+                grandTotal += parseFloat($(this).find('.total').val()) || 0;
+            });
+
             // 📦 เตรียมข้อมูลสินค้า
-            let items = [{
-                product_code: $('#product_code').val(),
-                product_name: $('#product_name').val(),
-                price: $('#price').val(),
-                qty: $('#qty').val(),
-                total: $('#total').val()
-            }];
+            let items = [];
+
+            $('.product-row').each(function() {
+
+                items.push({
+                    product_code: $(this).find('.product_code').val(),
+                    product_name: $(this).find('.product_name').val(),
+                    price: $(this).find('.price').val(),
+                    qty: $(this).find('.qty').val(),
+                    total: $(this).find('.total').val()
+                });
+
+            });
 
             // 👨‍💼 เตรียมข้อมูลพนักงาน
             let employees = [];
 
             $('.employee-row').each(function() {
+
+                let percent = parseFloat($(this).find('.emp_percent').val()) || 0;
+
                 employees.push({
                     emp_code: $(this).find('.emp_code').val(),
                     emp_name: $(this).find('.emp_name').val(),
-                    percent: $(this).find('.emp_percent').val(),
-                    amount: ($(this).find('.emp_percent').val() / 100) * $('#total').val()
+                    percent: percent,
+                    amount: (percent / 100) * grandTotal
                 });
+
             });
 
             // 🚀 ยิง API
@@ -448,7 +514,7 @@
                     report_type: $('input[name="report_type"]:checked').val(),
                     product_type: $('input[name="product_type"]:checked').val(),
                     damage_reason: $('textarea').val(),
-                    total_amount: $('#total').val(),
+                    total_amount: grandTotal,
                     items: items,
                     employees: employees
                 },
@@ -476,15 +542,25 @@
             });
         });
 
-        $('#product_code').on('change', function() {
+        $(document).on('change', '.product_code', function() {
+
+            let row = $(this).closest('.product-row');
             let code = $(this).val();
 
             $.get("{{ url('get-product') }}", {
                 code: code
             }, function(res) {
-                $('#product_name').val(res.product_name);
-                $('#price').val(res.price);
+
+                if (res) {
+                    row.find('.product_name').val(res.product_name);
+                    row.find('.price').val(res.price);
+                } else {
+                    row.find('.product_name').val('');
+                    row.find('.price').val('');
+                    alert('ไม่พบสินค้า');
+                }
             });
+
         });
 
         function validateForm() {
@@ -506,18 +582,41 @@
                 return false;
             }
 
-            if (!$('#product_code').val()) {
+            let hasProduct = false;
+
+            $('.product-row').each(function() {
+                let code = $(this).find('.product_code').val();
+                let qty = $(this).find('.qty').val();
+
+                if (code && qty) {
+                    hasProduct = true;
+                }
+            });
+
+            if (!hasProduct) {
                 Swal.fire({
                     icon: 'warning',
-                    title: 'กรุณากรอกรหัสสินค้า'
+                    title: 'กรุณาเพิ่มสินค้าอย่างน้อย 1 รายการ'
                 });
                 return false;
             }
 
-            if (!$('#qty').val()) {
+            let invalidQty = false;
+
+            $('.product-row').each(function() {
+
+                let qty = $(this).find('.qty').val();
+
+                if (!qty || qty <= 0) {
+                    invalidQty = true;
+                }
+
+            });
+
+            if (invalidQty) {
                 Swal.fire({
                     icon: 'warning',
-                    title: 'กรุณากรอกจำนวนสินค้า'
+                    title: 'กรุณากรอกจำนวนสินค้าให้ครบและมากกว่า 0'
                 });
                 return false;
             }
@@ -559,7 +658,11 @@
             }
 
             // ✅ 4. ตรวจมูลค่า
-            let totalProduct = parseFloat($('#total').val()) || 0;
+            let totalProduct = 0;
+
+            $('.product-row').each(function() {
+                totalProduct += parseFloat($(this).find('.total').val()) || 0;
+            });
             let totalEmpAmount = 0;
 
             $('.emp_percent').each(function() {
@@ -579,11 +682,14 @@
             return true;
         }
 
-        $('#qty, #price').on('keyup change', function() {
-            let price = parseFloat($('#price').val()) || 0;
-            let qty = parseFloat($('#qty').val()) || 0;
+        $(document).on('keyup change', '.qty', function() {
 
-            $('#total').val(price * qty);
+            let row = $(this).closest('.product-row');
+
+            let price = parseFloat(row.find('.price').val()) || 0;
+            let qty = parseFloat(row.find('.qty').val()) || 0;
+
+            row.find('.total').val(price * qty);
         });
 
         $(document).on('click', '#add-employee', function() {
