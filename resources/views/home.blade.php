@@ -87,6 +87,15 @@
                                         </div>
                                     </div>
 
+                                    <div class="mb-3">
+                                        <label>รูปแบบการดำเนินการ <span class="text-danger">*</span></label>
+                                        <select id="flow_type" class="form-control">
+                                            <option value="">-- เลือก --</option>
+                                            <option value="destroy">ทำลายสินค้า</option>
+                                            <option value="discount">ลดราคา</option>
+                                        </select>
+                                    </div>
+
                                     <!-- สาขา + วันที่ -->
                                     <div class="row">
                                         <div class="col-md-6 mb-3">
@@ -307,8 +316,6 @@
                             <th>สาขา</th>
                             <th>ประเภท</th>
                             <th>มูลค่า</th>
-                            <th>ส่วนลด</th>
-                            <th>ราคาขาย</th>
                             <th>สถานะ</th>
                         </tr>
                     </thead>
@@ -320,21 +327,6 @@
                                 <td>{{ $r->branch->branch_desc ?? '-' }}</td>
                                 <td>{{ $r->report_type }}</td>
                                 <td>{{ number_format($r->total_amount, 2) }}</td>
-                                <td>
-                                    @if ($r->discount_percent)
-                                        {{ $r->discount_percent }}%
-                                    @else
-                                        -
-                                    @endif
-                                </td>
-
-                                <td>
-                                    @if ($r->final_price)
-                                        {{ number_format($r->final_price, 2) }}
-                                    @else
-                                        -
-                                    @endif
-                                </td>
                                 <td class="text-center">
 
                                     @if ($r->status == 'pending')
@@ -467,6 +459,14 @@
                 return;
             }
 
+            if (!$('#flow_type').val()) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'กรุณาเลือกรูปแบบการดำเนินการ'
+                });
+                return;
+            }
+
             let grandTotal = 0;
 
             $('.product-row').each(function() {
@@ -513,6 +513,7 @@
                     branch_code: $('#branch_code').val(),
                     report_type: $('input[name="report_type"]:checked').val(),
                     product_type: $('input[name="product_type"]:checked').val(),
+                    flow_type: $('#flow_type').val(),
                     damage_reason: $('textarea').val(),
                     total_amount: grandTotal,
                     items: items,

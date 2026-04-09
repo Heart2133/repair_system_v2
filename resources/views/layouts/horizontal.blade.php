@@ -476,47 +476,63 @@
                         </a>
                     </li> --}}
 
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('damage-report') }}">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            ระบบใบแจ้งสินค้าทำลาย
-                            <div class="arrow-down"></div>
-                        </a>
-                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex justify-content-between align-items-center menu-btn"
+                            href="#" id="damageDropdown" role="button" data-bs-toggle="dropdown"
+                            aria-expanded="false">
 
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('manager-approve') }}">
-                            <i class="fas fa-user-check me-2"></i>
-                            อนุมัติ (Manager)
+                            <span>
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                ระบบสินค้าชำรุด / ทำลาย
+                                <div class="arrow-down"></div>
+                            </span>
                         </a>
-                    </li>
 
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('admin-approve') }}">
-                            <i class="fas fa-user-shield me-2"></i>
-                            ผู้บริหารอนุมัติ
-                        </a>
-                    </li>
+                        <ul class="dropdown-menu w-100" aria-labelledby="damageDropdown">
 
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('branch.sap') }}">
-                            <i class="fas fa-file-alt me-2"></i>
-                            บันทึก SAP (สาขา)
-                        </a>
-                    </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ route('damage-report') }}">
+                                    📄 แจ้งรายการ
+                                </a>
+                            </li>
 
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('hr.approve') }}">
-                            <i class="fas fa-money-bill-wave me-2"></i>
-                            หักเงินเดือน (HR)
-                        </a>
-                    </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ route('manager-approve') }}">
+                                    👤 อนุมัติ (Manager)
+                                </a>
+                            </li>
 
-                     <li class="nav-item">
-                        <a class="nav-link" href="{{ route('destroy.list') }}">
-                            <i class="fas fa-fire me-2"></i>
-                            ทำลายสินค้า
-                        </a>
+                            <li>
+                                <a class="dropdown-item" href="{{ route('admin-approve') }}">
+                                    🧑‍💼 ผู้บริหารอนุมัติ
+                                </a>
+                            </li>
+
+                            <li>
+                                <a class="dropdown-item" href="{{ route('branch.sap') }}">
+                                    📑 บันทึก SAP
+                                </a>
+                            </li>
+
+                            <li>
+                                <a class="dropdown-item" href="{{ route('hr.approve') }}">
+                                    💰 หักเงินเดือน (HR)
+                                </a>
+                            </li>
+
+                            <li>
+                                <a class="dropdown-item" href="{{ route('destroy.list') }}">
+                                    🔥 ทำลายสินค้า
+                                </a>
+                            </li>
+
+                            <li>
+                                <a class="dropdown-item" href="{{ route('discount.list') }}">
+                                    🏷️ ปริ้นสติ๊กเกอร์
+                                </a>
+                            </li>
+
+                        </ul>
                     </li>
 
 

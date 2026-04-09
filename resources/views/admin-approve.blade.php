@@ -45,7 +45,8 @@
                             </td> --}}
                             <td>
                                 {{-- <div class="d-flex gap-2"> --}}
-                                <button class="btn btn-success btn-approve" data-id="{{ $r->id }}">
+                                <button class="btn btn-success btn-approve" data-id="{{ $r->id }}"
+                                    data-percent="{{ $r->manager_discount_percent }}">
                                     อนุมัติ
                                 </button>
 
@@ -188,22 +189,38 @@
         //         });
         $('.btn-approve').click(function() {
 
+            let row = $(this).closest('tr');
             let id = $(this).data('id');
 
-            $.post("{{ route('damage.admin.action') }}", {
-                _token: '{{ csrf_token() }}',
-                id: id,
-                action: 'approved',
-                remark: ''
-            }, function(res) {
+            let total = parseFloat(row.find('td:nth-child(3)').text().replace(/,/g, ''));
+            let percent = $(this).data('percent'); // ส่งมาจาก blade
 
-                if (!res.success) {
-                    Swal.fire('ผิดพลาด', res.error, 'error');
-                    return;
-                }
+            let discount = (total * percent) / 100;
+            let final = total - discount;
 
-                Swal.fire('สำเร็จ', 'อนุมัติเรียบร้อย ส่งต่อให้สาขาแล้ว', 'success')
-                    .then(() => location.reload());
+            Swal.fire({
+                title: 'ยืนยันอนุมัติ',
+                html: `
+            <p>ส่วนลด: ${percent}%</p>
+            <p>ส่วนลด (บาท): ${discount.toFixed(2)}</p>
+            <p>ราคาขาย: ${final.toFixed(2)}</p>
+        `,
+                showCancelButton: true,
+                confirmButtonText: 'อนุมัติ'
+            }).then((result) => {
+
+                if (!result.isConfirmed) return;
+
+                $.post("{{ route('damage.admin.action') }}", {
+                    _token: '{{ csrf_token() }}',
+                    id: id,
+                    action: 'approved',
+                    discount_percent: percent
+                }, function(res) {
+
+                    Swal.fire('สำเร็จ', 'อนุมัติแล้ว', 'success')
+                        .then(() => location.reload());
+                });
 
             });
 

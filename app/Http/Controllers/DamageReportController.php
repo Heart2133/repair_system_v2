@@ -66,9 +66,11 @@ class DamageReportController extends Controller
                 'doc_no' => $doc_no, // ✅ ใช้ตัวใหม่
                 'branch_code' => $request->branch_code, // ✅ แก้จาก branch_desc
                 'report_type' => $request->report_type,
+                'flow_type' => $request->flow_type ?? 'destroy',
                 'product_type' => $request->product_type,
                 'damage_reason' => $request->damage_reason,
                 'total_amount' => $request->total_amount,
+                'status' => 'pending',
                 'created_by' => auth()->id() ?? 0,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -213,6 +215,7 @@ class DamageReportController extends Controller
                     ->where('id', $request->id)
                     ->update([
                         'status' => 'approved_manager', // 🔥 ส่งต่อ admin
+                        'manager_discount_percent' => $request->manager_discount_percent,
                         'approved_manager_by' => auth()->id(),
                         'approved_manager_at' => now(),
                         'updated_at' => now(),
@@ -270,14 +273,55 @@ class DamageReportController extends Controller
 
             if ($request->action == 'approved') {
 
-                DB::table('damage_reports')
+                $report = DB::table('damage_reports')
                     ->where('id', $request->id)
-                    ->update([
-                        'status' => 'waiting_branch_sap',
-                        'approved_admin_by' => auth()->id(),
-                        'approved_admin_at' => now(),
-                        'updated_at' => now(),
+                    ->first();
+
+                if (!$report) {
+                    return response()->json([
+                        'success' => false,
+                        'error' => 'ไม่พบข้อมูล'
                     ]);
+                }
+
+                // 🔥 กรณี discount
+                if ($report->flow_type == 'discount') {
+
+                    if (!$request->discount_percent) {
+                        return response()->json([
+                            'success' => false,
+                            'error' => 'กรุณาระบุ % ลดราคา'
+                        ]);
+                    }
+
+                    $percent = $request->discount_percent;
+
+                    // 🔥 คำนวณราคาหลังลด
+                    $finalPrice = $report->total_amount
+                        - ($report->total_amount * $percent / 100);
+
+                    DB::table('damage_reports')
+                        ->where('id', $request->id)
+                        ->update([
+                            'status' => 'waiting_branch_print',
+                            'discount_percent' => $percent, // ✅ เพิ่ม
+                            'final_price' => $finalPrice,           // ✅ เพิ่ม
+                            'approved_admin_by' => auth()->id(),
+                            'approved_admin_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+                } else {
+
+                    // 🔥 กรณี destroy
+                    DB::table('damage_reports')
+                        ->where('id', $request->id)
+                        ->update([
+                            'status' => 'waiting_branch_sap',
+                            'approved_admin_by' => auth()->id(),
+                            'approved_admin_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+                }
             } elseif ($request->action == 'rejected') {
 
                 DB::table('damage_reports')
@@ -311,6 +355,7 @@ class DamageReportController extends Controller
     {
         $reports = DB::table('damage_reports')
             ->where('status', 'hr_done')
+            ->where('flow_type', 'destroy') // 🔥 เพิ่มตรงนี้
             ->get();
 
         return view('destroy-list', compact('reports'));
@@ -336,6 +381,7 @@ class DamageReportController extends Controller
     {
         $reports = DB::table('damage_reports')
             ->where('status', 'waiting_branch_sap')
+            ->where('flow_type', 'destroy')
             ->get();
 
         return view('branch-sap', compact('reports'));
@@ -454,5 +500,39 @@ class DamageReportController extends Controller
                 'error' => $e->getMessage()
             ]);
         }
+    }
+
+    public function discountList()
+    {
+        $reports = DB::table('damage_reports')
+            ->where('flow_type', 'discount')
+            ->where('status', 'waiting_branch_print')
+            ->get();
+
+        return view('discount-list', compact('reports'));
+    }
+
+    public function discountPrint($id)
+    {
+        $report = DB::table('damage_reports')->where('id', $id)->first();
+
+        $items = DB::table('damage_report_items')
+            ->where('damage_report_id', $id)
+            ->get();
+
+        return view('discount-print', compact('report', 'items'));
+    }
+
+    public function discountPrintSave(Request $request)
+    {
+        DB::table('damage_reports')
+            ->where('id', $request->id)
+            ->update([
+                'printed_at' => now(),
+                'printed_by' => auth()->id(),
+                'status' => 'completed'
+            ]);
+
+        return response()->json(['success' => true]);
     }
 }

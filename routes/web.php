@@ -45,7 +45,9 @@ Route::post('/branch-sap-save', [DamageReportController::class, 'branchSapSave']
 Route::get('/hr-approve', [DamageReportController::class, 'hrApprove'])->name('hr.approve');
 Route::post('/hr-save', [DamageReportController::class, 'hrSave'])->name('hr.save');
 
-
+Route::get('discount-list', [DamageReportController::class, 'discountList'])->name('discount.list');
+Route::get('discount-print/{id}', [DamageReportController::class, 'discountPrint'])->name('discount.print');
+Route::post('discount-print-save', [DamageReportController::class, 'discountPrintSave'])->name('discount.print.save');
 
 
 
