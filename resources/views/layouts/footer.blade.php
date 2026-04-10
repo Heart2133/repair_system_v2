@@ -37,7 +37,7 @@
             <div class="col-sm-6 d-flex" >
                 <script>
                     document.write(new Date().getFullYear())
-                </script> <div style="color:rgba(13, 13, 173, 0.8);"> Task Assignment Management System. Hardwarehouse Corporation Co., Ltd.</div>
+                </script> <div style="color:rgba(13, 13, 173, 0.8);"> Damage & Disposal Management System. Hardwarehouse Corporation Co., Ltd.</div>
             </div>
             <div class="col-sm-6">
 

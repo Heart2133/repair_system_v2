@@ -32,7 +32,8 @@
                                 @endif
                             </td> --}}
                             <td>
-                                <button class="btn btn-success btn-approve" data-id="{{ $r->id }}">
+                                <button class="btn btn-success btn-approve" data-id="{{ $r->id }}"
+                                    data-flow="{{ $r->flow_type }}">
                                     อนุมัติ
                                 </button>
 
@@ -55,17 +56,55 @@
 
             const $row = $(this).closest('tr');
             const recordId = $(this).data('id');
+            const flowType = $(this).data('flow'); // ✅ เพิ่มตรงนี้
 
-            // 🔹 ดึงยอดรวม และแปลงเป็นตัวเลข
             const totalAmount = parseFloat(
                 $row.find('td:nth-child(3)').text().replace(/,/g, '')
             ) || 0;
 
+            // =========================
+            // 🔥 CASE 1: DESTROY
+            // =========================
+            if (flowType === 'destroy') {
+
+                Swal.fire({
+                    title: 'ยืนยันการอนุมัติ',
+                    text: 'ต้องการอนุมัติรายการนี้ใช่หรือไม่?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'ยืนยัน',
+                    cancelButtonText: 'ยกเลิก'
+                }).then((result) => {
+
+                    if (!result.isConfirmed) return;
+
+                    $.ajax({
+                        url: '{{ url('damage-report/approve-action') }}',
+                        method: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}',
+                            id: recordId,
+                            action: 'approved_manager'
+                            // ❌ ไม่มี discount
+                        },
+                        success: function() {
+                            Swal.fire('สำเร็จ', 'อนุมัติเรียบร้อย', 'success')
+                                .then(() => location.reload());
+                        }
+                    });
+
+                });
+
+                return; // ⛔ สำคัญ! ไม่ให้ไป popup discount
+            }
+
+            // =========================
+            // 🔥 CASE 2: DISCOUNT
+            // =========================
             Swal.fire({
                 title: 'กำหนดส่วนลด (ผู้จัดการ)',
-
                 html: `
-            <div class="text-start">
+        <div class="text-start">
 
             <div class="mb-3">
                 <label class="form-label fw-semibold">% ส่วนลด</label>
@@ -84,16 +123,9 @@
 
         </div>
         `,
-
                 showCancelButton: true,
                 confirmButtonText: 'ยืนยัน',
                 cancelButtonText: 'ยกเลิก',
-
-                buttonsStyling: false,
-                customClass: {
-                    confirmButton: 'btn btn-primary px-4',
-                    cancelButton: 'btn btn-secondary px-4 ms-2'
-                },
 
                 didOpen: () => {
 
@@ -101,12 +133,10 @@
                     const discountInput = document.getElementById('discount_amount');
                     const netInput = document.getElementById('net_amount');
 
-                    // 🔹 คำนวณแบบ Real-time
                     percentInput.addEventListener('input', () => {
 
                         let percent = parseFloat(percentInput.value) || 0;
 
-                        // กันค่าเกิน 100%
                         if (percent > 100) {
                             percent = 100;
                             percentInput.value = 100;
@@ -115,7 +145,6 @@
                         const discount = (totalAmount * percent) / 100;
                         const netTotal = totalAmount - discount;
 
-                        // 🔹 format ตัวเลข
                         discountInput.value = discount.toLocaleString(undefined, {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
@@ -135,7 +164,7 @@
                     );
 
                     if (!percent || percent <= 0) {
-                        Swal.showValidationMessage('กรุณาระบุ % ส่วนลดให้ถูกต้อง');
+                        Swal.showValidationMessage('กรุณาระบุ % ส่วนลด');
                         return false;
                     }
 
@@ -148,7 +177,6 @@
 
                 if (!result.isConfirmed) return;
 
-                // 🔹 ส่งข้อมูลไป server
                 $.ajax({
                     url: '{{ url('damage-report/approve-action') }}',
                     method: 'POST',
@@ -158,25 +186,9 @@
                         action: 'approved_manager',
                         manager_discount_percent: result.value.percent
                     },
-
                     success: function() {
-
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'สำเร็จ',
-                            text: 'รายการถูกส่งให้ผู้บริหารเรียบร้อยแล้ว'
-                        }).then(() => location.reload());
-
-                    },
-
-                    error: function() {
-
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'เกิดข้อผิดพลาด',
-                            text: 'ไม่สามารถดำเนินการได้ กรุณาลองใหม่อีกครั้ง'
-                        });
-
+                        Swal.fire('สำเร็จ', 'ส่งต่อเรียบร้อย', 'success')
+                            .then(() => location.reload());
                     }
                 });
 

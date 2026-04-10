@@ -331,11 +331,12 @@
 
                                     @if ($r->status == 'pending')
                                         <span class="badge bg-warning">รออนุมัติ</span>
-                                    @elseif(in_array($r->status, ['approved_manager', 'waiting_branch_sap', 'sap_completed', 'accounting_done']))
+                                    @elseif(in_array($r->status, ['approved_manager', 'waiting_branch_sap', 'sap_completed', 'accounting_done', 'waiting_branch_print']))
                                         <span class="badge bg-info">กำลังดำเนินการ</span>
                                     @elseif($r->status == 'hr_done')
                                         <span class="badge bg-primary">รอทำลาย</span>
-                                    @elseif($r->status == 'destroy_completed')
+                                    @elseif(in_array($r->status, ['destroy_completed', 'completed']))
+                                        {{-- ✅ เพิ่มตรงนี้ --}}
                                         <span class="badge bg-success">เสร็จสิ้น</span>
                                     @elseif($r->status == 'rejected')
                                         <span class="badge bg-danger">ไม่อนุมัติ</span>

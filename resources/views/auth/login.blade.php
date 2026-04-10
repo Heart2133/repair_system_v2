@@ -105,7 +105,7 @@
 
                                         <div>
                                             <h5 class="text-primary">Welcome to</h5>
-                                            <p>Task Assignment Management System (TAMS)</p>
+                                            <p>Damage & Disposal Management System (DDMS)</p>
                                         </div>
 
                                         <div class="mt-4">
@@ -197,7 +197,7 @@
                                 </div>
 
                                 <div class="text-center">
-                                    <p class="mb-0" style="margin-top: -20px;">Task Assignment Management System (TAMS)
+                                    <p class="mb-0" style="margin-top: -20px;">Damage & Disposal Management System (DDMS)
                                         <br>Hardwarehouse Corporation Co., Ltd. ©
                                         <script>
                                             document.write(new Date().getFullYear())

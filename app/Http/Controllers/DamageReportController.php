@@ -209,21 +209,36 @@ class DamageReportController extends Controller
     public function approveAction(Request $request)
     {
         try {
+
+            $report = DB::table('damage_reports')
+                ->where('id', $request->id)
+                ->first();
+
+            if (!$report) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'ไม่พบข้อมูล'
+                ]);
+            }
+
             if ($request->action == 'approved_manager') {
+
+                $data = [
+                    'status' => 'approved_manager',
+                    'approved_manager_by' => auth()->id(),
+                    'approved_manager_at' => now(),
+                    'updated_at' => now(),
+                ];
+
+                // ✅ เฉพาะ discount เท่านั้น
+                if ($report->flow_type == 'discount') {
+                    $data['manager_discount_percent'] = $request->manager_discount_percent ?? 0;
+                }
 
                 DB::table('damage_reports')
                     ->where('id', $request->id)
-                    ->update([
-                        'status' => 'approved_manager', // 🔥 ส่งต่อ admin
-                        'manager_discount_percent' => $request->manager_discount_percent,
-                        'approved_manager_by' => auth()->id(),
-                        'approved_manager_at' => now(),
-                        'updated_at' => now(),
-                    ]);
-            }
-
-            // ❌ Manager ไม่อนุมัติ
-            elseif ($request->action == 'rejected') {
+                    ->update($data);
+            } elseif ($request->action == 'rejected') {
 
                 DB::table('damage_reports')
                     ->where('id', $request->id)

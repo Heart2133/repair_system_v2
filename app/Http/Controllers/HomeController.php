@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Session;
 use Image;
 use Illuminate\Support\Facades\DB;
+use App\Models\DamageReport;
+use App\Models\Branch;
 
 
 class HomeController extends Controller
@@ -42,7 +44,34 @@ class HomeController extends Controller
 
     public function index()
     {
-        return view('home'); // หรือ view('damage-report') ถ้าแยกไฟล์
+        $reports = DamageReport::with('branch')->get();
+
+        $total = $reports->count();
+        $pending = $reports->where('status', 'pending')->count();
+        $process = $reports->whereIn('status', [
+            'approved_manager',
+            'waiting_branch_sap',
+            'sap_completed',
+            'accounting_done',
+            'waiting_branch_print'
+        ])->count();
+        $success = $reports->whereIn('status', [
+            'destroy_completed',
+            'completed'
+        ])->count();
+
+        return view('home', compact(
+            'reports',
+            'total',
+            'pending',
+            'process',
+            'success'
+        ));
+    }
+
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class, 'branch_code', 'branch_code');
     }
 
     public function logout()
