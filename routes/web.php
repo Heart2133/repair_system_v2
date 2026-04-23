@@ -49,6 +49,16 @@ Route::get('discount-list', [DamageReportController::class, 'discountList'])->na
 Route::get('discount-print/{id}', [DamageReportController::class, 'discountPrint'])->name('discount.print');
 Route::post('discount-print-save', [DamageReportController::class, 'discountPrintSave'])->name('discount.print.save');
 
+// Claim follow
+Route::get('/claim-follow', [DamageReportController::class, 'claimFollow'])->name('claim.follow');
+Route::post('/claim-action', [DamageReportController::class, 'claimAction'])->name('claim.action');
+
+// Accounting
+Route::get('/accounting', [DamageReportController::class, 'accounting'])->name('accounting');
+Route::post('/accounting-save', [DamageReportController::class, 'accountingSave'])->name('accounting.save');
+
+// Close case (Executive)
+Route::post('/close-case', [DamageReportController::class, 'closeCase'])->name('close.case');
 
 
 

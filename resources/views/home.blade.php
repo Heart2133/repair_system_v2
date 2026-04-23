@@ -32,7 +32,7 @@
     @endphp
 
     <div class="modal fade" id="orderAdd" tabindex="-1">
-        <div class="modal-dialog modal-xl">
+        <div class="modal-dialog" style="max-width: 95%;">
             <div class="modal-content">
 
                 <!-- HEADER -->
@@ -46,203 +46,263 @@
 
                     <div class="row">
 
-                        <!-- 🔵 LEFT -->
-                        <div class="col-lg-6">
-
-                            <div class="card mb-3">
+                        <!-- 🔵 ข้อมูลเอกสาร (เต็มจอ) -->
+                        <div class="col-12">
+                            <div class="card mb-4">
                                 <div class="card-header">ข้อมูลเอกสาร</div>
+
+                                <!-- ✅ ต้องมี -->
                                 <div class="card-body">
 
-                                    <!-- ประเภทผู้แจ้ง -->
-                                    <div class="mb-3">
-                                        <label>ประเภทผู้แจ้ง<span class="text-danger">*</span></label>
-                                        <div class="d-flex gap-3">
-                                            <div class="form-check">
-                                                <input type="radio" class="form-check-input" name="report_type"
-                                                    value="branch">
-                                                <label class="form-check-label">สาขาแจ้ง</label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input type="radio" class="form-check-input" name="report_type"
-                                                    value="customer">
-                                                <label class="form-check-label">ลูกค้าแจ้ง</label>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- ประเภทสินค้า -->
-                                    <div class="mb-3">
-                                        <label>ประเภทสินค้า <span class="text-danger">*</span></label>
-                                        <div class="d-flex gap-3">
-                                            <div class="form-check">
-                                                <input type="radio" class="form-check-input" name="product_type"
-                                                    value="domestic">
-                                                <label class="form-check-label">ในประเทศ</label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input type="radio" class="form-check-input" name="product_type"
-                                                    value="international">
-                                                <label class="form-check-label">นอกประเทศ</label>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label>รูปแบบการดำเนินการ <span class="text-danger">*</span></label>
-                                        <select id="flow_type" class="form-control">
-                                            <option value="">-- เลือก --</option>
-                                            <option value="destroy">ทำลายสินค้า</option>
-                                            <option value="discount">ลดราคา</option>
-                                        </select>
-                                    </div>
-
-                                    <!-- สาขา + วันที่ -->
                                     <div class="row">
-                                        <div class="col-md-6 mb-3">
-                                            <label>สาขา <span class="text-danger">*</span></label>
-                                            @if (Auth::user()->role == 'admin')
-                                                <select class="form-select" id="branch_code">
-                                                    <option value="">-- เลือก --</option>
-                                                    @foreach (getBranchAll() as $item)
-                                                        <option value="{{ $item->branch_code }}">
-                                                            {{ $item->branch_code }} - {{ $item->branch_desc }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                            @else
-                                                <input type="text" class="form-control"
-                                                    value="{{ Auth::user()->hwh_branch }}" disabled>
 
-                                                <input type="hidden" id="branch_code"
-                                                    value="{{ Auth::user()->hwh_branch }}">
-                                            @endif
+                                        <!-- 🔵 ซ้าย -->
+                                        <div class="col-md-6">
+
+
+                                            <div class="row">
+
+                                                <!-- 🔹 รูปแบบการดำเนินการ -->
+                                                <div class="col-md-6 mb-4">
+                                                    <label class="mb-2 d-block">
+                                                        รูปแบบการดำเนินการ <span class="text-danger">*</span>
+                                                    </label>
+                                                    <select id="flow_type" class="form-select">
+                                                        <option value="">-- เลือก --</option>
+                                                        <option value="destroy">ทำลายสินค้า</option>
+                                                        <option value="discount">ลดราคา</option>
+                                                        <option value="claim">เคลมสินค้า</option>
+                                                    </select>
+                                                </div>
+
+                                                <!-- 🔹 ประเภทผู้แจ้ง -->
+                                                <div class="col-md-6 mb-4">
+                                                    <label class="mb-2 d-block">
+                                                        ประเภทผู้แจ้ง <span class="text-danger">*</span>
+                                                    </label>
+
+                                                    <div class="dropdown w-100">
+                                                        <button
+                                                            class="btn btn-outline-secondary w-100 text-start dropdown-toggle"
+                                                            type="button" data-bs-toggle="dropdown" id="dropdownReport">
+                                                            เลือกประเภทผู้แจ้ง
+                                                        </button>
+
+                                                        <ul class="dropdown-menu w-100" id="reportDropdown">
+
+                                                            <li class="dropdown-item source-option" data-group="all"
+                                                                data-value="branch">สาขาแจ้ง</li>
+
+                                                            <li class="dropdown-item source-option" data-group="basic"
+                                                                data-value="customer">ลูกค้าแจ้ง</li>
+
+                                                            <li class="dropdown-item source-option" data-group="claim"
+                                                                data-value="dc">DC แจ้ง</li>
+
+                                                            <li class="dropdown-item source-option" data-group="claim"
+                                                                data-value="purchase_local">จัดซื้อในประเทศ</li>
+
+                                                            <li class="dropdown-item source-option" data-group="claim"
+                                                                data-value="purchase_inter">จัดซื้อต่างประเทศ</li>
+
+                                                        </ul>
+                                                    </div>
+
+                                                    <!-- hidden -->
+                                                    <input type="hidden" id="report_source" name="report_source">
+                                                </div>
+
+                                            </div>
+
+                                            <div class="mb-4">
+                                                <label class="mb-2 d-block">
+                                                    ประเภทสินค้า <span class="text-danger">*</span>
+                                                </label>
+
+                                                <div class="d-flex gap-4">
+                                                    <div class="form-check">
+                                                        <input type="radio" class="form-check-input" name="product_type"
+                                                            value="domestic">
+                                                        <label class="form-check-label">ในประเทศ</label>
+                                                    </div>
+
+                                                    <div class="form-check">
+                                                        <input type="radio" class="form-check-input" name="product_type"
+                                                            value="international">
+                                                        <label class="form-check-label">นอกประเทศ</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="mb-4">
+                                                <label class="mb-2 d-block">
+                                                    ประเภทปัญหา <span class="text-danger">*</span>
+                                                </label>
+
+                                                <div class="d-flex flex-column gap-2">
+                                                    <div class="form-check">
+                                                        <input type="radio" name="issue_type" value="defect"
+                                                            class="form-check-input">
+                                                        <label class="form-check-label">สินค้าด้อยคุณภาพจากการผลิต</label>
+                                                    </div>
+
+                                                    <div class="form-check">
+                                                        <input type="radio" name="issue_type" value="claimable"
+                                                            class="form-check-input">
+                                                        <label
+                                                            class="form-check-label">สินค้าเสียหายที่สามารถเคลมได้</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+
                                         </div>
 
-                                        <div class="col-md-6 mb-3">
-                                            <label>วันที่เอกสาร</label>
-                                            <input type="text" class="form-control" value="{{ now()->format('Y-m-d') }}"
-                                                disabled>
+                                        <!-- 🟢 ขวา -->
+                                        <div class="col-md-6">
+
+                                            <div class="row">
+
+                                                <!-- สาขา -->
+                                                <div class="col-md-6 mb-4">
+                                                    <label class="mb-2 d-block">
+                                                        สาขา <span class="text-danger">*</span>
+                                                    </label>
+                                                    <select class="form-select" id="branch_code">
+                                                        <option value="">-- เลือก --</option>
+                                                        @foreach (getBranchAll() as $item)
+                                                            <option value="{{ $item->branch_code }}">
+                                                                {{ $item->branch_code }} - {{ $item->branch_desc }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+
+                                                <!-- วันที่เอกสาร -->
+                                                <div class="col-md-6 mb-4">
+                                                    <label class="mb-2 d-block">วันที่เอกสาร</label>
+                                                    <input type="text" class="form-control"
+                                                        value="{{ now()->format('Y-m-d') }}" disabled>
+                                                </div>
+
+                                            </div>
+
+                                            <div class="mb-4" id="purchase-section" style="display:none;">
+                                                <label class="mb-2 d-block">ผู้ดูแลจัดซื้อ</label>
+                                                <input type="text" class="form-control" id="purchase_name">
+                                            </div>
+
+                                            <div class="mb-4">
+                                                <label class="mb-2 d-block">สาเหตุความเสียหาย <span
+                                                        class="text-danger">*</span></label>
+                                                <textarea id="damage_reason" class="form-control"></textarea>
+                                            </div>
+
+                                            <div>
+                                                <label class="mb-2 d-block">แนบรูป / เอกสาร</label>
+                                                <input type="file" class="form-control" multiple>
+                                            </div>
+
                                         </div>
-                                    </div>
 
-                                    <!-- สาเหตุ -->
-                                    <div class="mb-3">
-                                        <label>สาเหตุความเสียหาย <span class="text-danger">*</span></label>
-                                        <textarea class="form-control" rows="4"></textarea>
-                                    </div>
-
-                                    <!-- แนบไฟล์ -->
-                                    <div class="mb-3">
-                                        <label>แนบรูป / เอกสาร</label>
-                                        <input type="file" class="form-control" multiple>
                                     </div>
 
                                 </div>
                             </div>
-
                         </div>
 
-                        <!-- 🟢 RIGHT -->
-                        <div class="col-lg-6">
+                        <!-- 🟢 ล่าง -->
+                        <div class="col-12">
+                            <div class="row">
 
-                            <!-- 📦 สินค้า -->
-                            <div class="card mb-3">
-                                <div class="card-header">ข้อมูลสินค้า</div>
+                                <!-- 📦 สินค้า -->
+                                <div class="card mb-3">
+                                    <div class="card-header">ข้อมูลสินค้า</div>
 
-                                <div id="product-wrapper">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered align-middle" id="product-table">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th style="width:7%">รหัสสินค้า</th>
+                                                    <th style="width:13%">ชื่อสินค้า</th>
+                                                    <th style="width:10%">ราคาต่อหน่วย</th>
+                                                    <th style="width:10%">จำนวน</th>
+                                                    <th style="width:10%">รวม</th>
+                                                    <th style="width:5%">จัดการ</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="product-wrapper">
 
-                                    <!-- ✅ 1 row -->
-                                    <div class="product-row mb-3 border rounded p-3">
-                                        <div class="row">
+                                                <!-- ✅ row -->
+                                                <tr class="product-row">
+                                                    <td><input type="text" class="form-control product_code" placeholder="กรุณากรอกรหัสสินค้า"></td>
+                                                    <td><input type="text" class="form-control product_name" disabled></td>
+                                                    <td><input type="text" class="form-control price" disabled></td>
+                                                    <td><input type="number" class="form-control qty" placeholder="กรุณากรอกจำนวน"></td>
+                                                    <td><input type="text" class="form-control total" disabled></td>
+                                                    <td class="text-center">
+                                                        <button type="button"
+                                                            class="btn btn-danger btn-sm btn-remove-product">
+                                                            ลบ
+                                                        </button>
+                                                    </td>
+                                                </tr>
 
-                                            <div class="col-md-10">
-                                                <div class="row mb-2">
-                                                    <div class="col-md-4">
-                                                        <label>รหัสสินค้า</label>
-                                                        <input type="text" class="form-control product_code">
-                                                    </div>
-
-                                                    <div class="col-md-6">
-                                                        <label>ชื่อสินค้า</label>
-                                                        <input type="text" class="form-control product_name" disabled>
-                                                    </div>
-                                                </div>
-
-                                                <div class="row">
-                                                    <div class="col-md-4">
-                                                        <label>ราคาต่อหน่วย</label>
-                                                        <input type="text" class="form-control price" disabled>
-                                                    </div>
-
-                                                    <div class="col-md-4">
-                                                        <label>จำนวน</label>
-                                                        <input type="number" class="form-control qty">
-                                                    </div>
-
-                                                    <div class="col-md-4">
-                                                        <label>ราคารวม</label>
-                                                        <input type="text" class="form-control total" disabled>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="col-md-2 d-flex align-items-center justify-content-center">
-                                                <button type="button"
-                                                    class="btn btn-danger btn-remove-product px-3">X</button>
-                                            </div>
-
-                                        </div>
+                                            </tbody>
+                                        </table>
                                     </div>
 
+                                    <div class="p-3">
+                                        <button type="button" id="add-product" class="btn btn-success btn-sm">
+                                            + เพิ่มสินค้า
+                                        </button>
+                                    </div>
                                 </div>
 
-                                <!-- ✅ ปุ่มต้องอยู่นอก row -->
-                                <div class="p-3">
-                                    <button type="button" id="add-product" class="btn btn-success btn-sm">
-                                        + เพิ่มสินค้า
-                                    </button>
-                                </div>
-                            </div>
+                                <!-- 👨‍💼 ผู้รับผิดชอบ -->
+                                <div class="card mb-3">
+                                    <div class="card-header">ผู้รับผิดชอบ</div>
 
-                            <!-- 👨‍💼 ผู้รับผิดชอบ -->
-                            <div class="card mb-3">
-                                <div class="card-header">ผู้รับผิดชอบ</div>
-                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered align-middle" id="employee-table">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th style="width:7%">รหัสพนักงาน</th>
+                                                    <th style="width:13%">ชื่อพนักงาน</th>
+                                                    <th style="width:10%">% ความรับผิดชอบ</th>
+                                                    <th style="width:10%">มูลค่า</th>
+                                                    <th style="width:5%">จัดการ</th>
+                                                </tr>
+                                            </thead>
 
-                                    <div id="employee-wrapper">
+                                            <tbody id="employee-wrapper">
 
-                                        <div class="row mb-2 employee-row">
-                                            <div class="col-md-4">
-                                                <label>รหัสพนักงาน</label>
-                                                <input type="text" class="form-control emp_code"
-                                                    placeholder="รหัสพนักงาน">
-                                            </div>
+                                                <!-- ✅ row -->
+                                                <tr class="employee-row">
+                                                    <td><input type="text" class="form-control emp_code" placeholder="กรุณากรอกรหัสพนักงาน"></td>
+                                                    <td><input type="text" class="form-control emp_name" placeholder="กรุณากรอกชื่อพนักงาน"></td>
+                                                    <td><input type="number" class="form-control emp_percent" placeholder="กรุณากรอก% ความรับผิดชอบ"></td>
+                                                    <td><input type="text" class="form-control emp_amount" disabled>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <button type="button" class="btn btn-danger btn-sm btn-remove">
+                                                            ลบ
+                                                        </button>
+                                                    </td>
+                                                </tr>
 
-                                            <div class="col-md-4">
-                                                <label>ชื่อพนักงาน</label>
-                                                <input type="text" class="form-control emp_name"
-                                                    placeholder="ชื่อพนักงาน">
-                                            </div>
-
-                                            <div class="col-md-3">
-                                                <label>% ความรับผิดชอบ</label>
-                                                <input type="number" class="form-control emp_percent" placeholder="%">
-                                            </div>
-
-                                            <div class="col-md-1 d-flex align-items-end">
-                                                <button type="button" class="btn btn-danger btn-sm btn-remove">X</button>
-                                            </div>
-                                        </div>
-
+                                            </tbody>
+                                        </table>
                                     </div>
 
-                                    <button type="button" class="btn btn-success btn-sm mt-2" id="add-employee">
-                                        + เพิ่มพนักงาน
-                                    </button>
-
+                                    <div class="p-3">
+                                        <button type="button" class="btn btn-success btn-sm" id="add-employee">
+                                            + เพิ่มพนักงาน
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
 
+
+                            </div>
                         </div>
 
                     </div>
@@ -274,33 +334,40 @@
         <div class="card-body">
 
             <!-- 📊 SUMMARY -->
-            <div class="row mb-4">
+            <div class="row mb-4 justify-content-center">
 
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <div class="border rounded p-3 text-center">
                         <div class="text-muted">รายการทั้งหมด</div>
                         <h4 class="mb-0">{{ $total ?? 0 }}</h4>
                     </div>
                 </div>
 
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <div class="border rounded p-3 text-center">
                         <div class="text-muted">รออนุมัติ</div>
                         <h4 class="mb-0 text-warning">{{ $pending ?? 0 }}</h4>
                     </div>
                 </div>
 
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <div class="border rounded p-3 text-center">
                         <div class="text-muted">กำลังดำเนินการ</div>
                         <h4 class="mb-0 text-info">{{ $process ?? 0 }}</h4>
                     </div>
                 </div>
 
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <div class="border rounded p-3 text-center">
                         <div class="text-muted">เสร็จสิ้น</div>
                         <h4 class="mb-0 text-success">{{ $success ?? 0 }}</h4>
+                    </div>
+                </div>
+
+                <div class="col-md-2">
+                    <div class="border rounded p-3 text-center">
+                        <div class="text-muted">รอเคลม</div>
+                        <h4 class="mb-0 text-danger">{{ $claim ?? 0 }}</h4>
                     </div>
                 </div>
 
@@ -308,7 +375,7 @@
 
             <!-- 📋 TABLE -->
             <div class="table-responsive">
-                <table class="table table-hover table-bordered align-middle">
+                <table id="datatable5" class="table table-hover table-bordered align-middle">
 
                     <thead>
                         <tr style="background:#556ee6;color:white;">
@@ -324,14 +391,21 @@
                         @forelse($reports as $r)
                             <tr>
                                 <td>{{ $r->doc_no }}</td>
-                                <td>{{ $r->branch->branch_desc ?? '-' }}</td>
+                                <td>{{ optional($r->branch)->branch_desc ?: '-' }}</td>
                                 <td>{{ $r->report_type }}</td>
                                 <td>{{ number_format($r->total_amount, 2) }}</td>
                                 <td class="text-center">
 
                                     @if ($r->status == 'pending')
                                         <span class="badge bg-warning">รออนุมัติ</span>
-                                    @elseif(in_array($r->status, ['approved_manager', 'waiting_branch_sap', 'sap_completed', 'accounting_done', 'waiting_branch_print']))
+                                    @elseif(in_array($r->status, [
+                                            'approved_manager',
+                                            'waiting_branch_sap',
+                                            'sap_completed',
+                                            'accounting_done',
+                                            'waiting_branch_print',
+                                            'waiting_accounting',
+                                        ]))
                                         <span class="badge bg-info">กำลังดำเนินการ</span>
                                     @elseif($r->status == 'hr_done')
                                         <span class="badge bg-primary">รอทำลาย</span>
@@ -361,6 +435,17 @@
 @endsection
 @section('script')
     <script>
+        $(document).on('change', 'input[name="issue_type"]', function() {
+
+            if ($(this).val() === 'claimable') {
+                $('#purchase-section').slideDown();
+            } else {
+                $('#purchase-section').slideUp();
+                $('#purchase_name').val('');
+            }
+
+        });
+
         $(document).on('click', '.BTNadd', function() {
             $('#orderAdd').modal("show");
         });
@@ -512,10 +597,12 @@
                 data: {
                     _token: '{{ csrf_token() }}', // ✅ ต้องมี
                     branch_code: $('#branch_code').val(),
-                    report_type: $('input[name="report_type"]:checked').val(),
+                    report_type: $('#report_source').val(),
                     product_type: $('input[name="product_type"]:checked').val(),
                     flow_type: $('#flow_type').val(),
-                    damage_reason: $('textarea').val(),
+                    issue_type: $('input[name="issue_type"]:checked').val(),
+                    purchase_name: $('#purchase_name').val(),
+                    damage_reason: $('#damage_reason').val(),
                     total_amount: grandTotal,
                     items: items,
                     employees: employees
@@ -568,7 +655,7 @@
         function validateForm() {
 
             // ✅ 1. ตรวจข้อมูลพื้นฐาน
-            if (!$('input[name="report_type"]:checked').val()) {
+            if (!$('#report_source').val()) {
                 Swal.fire({
                     icon: 'warning',
                     title: 'กรุณาเลือกประเภทผู้แจ้ง'
@@ -583,6 +670,36 @@
                 });
                 return false;
             }
+
+            // ✅ ต้องเลือกประเภทปัญหา
+            if (!$('input[name="issue_type"]:checked').val()) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'กรุณาเลือกประเภทปัญหา'
+                });
+                return false;
+            }
+
+            // ✅ ถ้าเลือกเคลม ต้องกรอกผู้ดูแลจัดซื้อ
+            if ($('input[name="issue_type"]:checked').val() === 'claimable') {
+                if (!$('#purchase_name').val()) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'กรุณากรอกผู้ดูแลจัดซื้อ'
+                    });
+                    return false;
+                }
+            }
+
+            // ✅ ต้องกรอกสาเหตุความเสียหาย
+            if (!$('textarea').val()) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'กรุณากรอกสาเหตุความเสียหาย'
+                });
+                return false;
+            }
+            
 
             let hasProduct = false;
 
@@ -696,27 +813,13 @@
 
         $(document).on('click', '#add-employee', function() {
 
-            let newRow = `
-        <div class="row mb-2 employee-row">
-            <div class="col-md-4">
-                <input type="text" class="form-control emp_code" placeholder="รหัสพนักงาน">
-            </div>
+            let row = $('.employee-row:first').clone();
 
-            <div class="col-md-4">
-                <input type="text" class="form-control emp_name" placeholder="ชื่อพนักงาน">
-            </div>
+            // เคลียร์ค่า
+            row.find('input').val('');
 
-            <div class="col-md-3">
-                <input type="number" class="form-control emp_percent" placeholder="%">
-            </div>
+            $('#employee-wrapper').append(row);
 
-            <div class="col-md-1 d-flex align-items-end">
-                <button type="button" class="btn btn-danger btn-sm btn-remove">X</button>
-            </div>
-        </div>
-    `;
-
-            $('#employee-wrapper').append(newRow);
         });
 
         $(document).on('click', '.btn-remove', function() {
@@ -756,6 +859,73 @@
 
                 }
             });
+        });
+
+        $(document).on('click', '.dropdown-item', function() {
+
+            let text = $(this).text();
+            let value = $(this).data('value');
+
+            $('#dropdownReport').text(text);
+            $('#report_source').val(value);
+
+        });
+
+        $('#flow_type').on('change', function() {
+
+            let flow = $(this).val();
+
+            $('.source-option').hide();
+            $('#report_source').val('');
+            $('#dropdownReport').text('เลือกประเภทผู้แจ้ง');
+
+            if (flow === 'destroy' || flow === 'discount') {
+
+                $('.source-option[data-group="all"]').show();
+                $('.source-option[data-group="basic"]').show();
+
+            } else if (flow === 'claim') {
+
+                $('.source-option[data-group="all"]').show();
+                $('.source-option[data-group="claim"]').show();
+            }
+
+        });
+
+        function calculateEmployeeAmount() {
+
+            let totalProduct = 0;
+
+            $('.product-row').each(function() {
+                totalProduct += parseFloat($(this).find('.total').val()) || 0;
+            });
+
+            $('#employee-wrapper tr').each(function() {
+
+                let percent = parseFloat($(this).find('.emp_percent').val()) || 0;
+
+                let amount = (percent / 100) * totalProduct;
+
+                $(this).find('.emp_amount').val(amount.toFixed(2));
+
+            });
+
+        }
+
+        $(document).on('keyup change', '.emp_percent', function() {
+            calculateEmployeeAmount();
+        });
+
+        $(document).on('keyup change', '.qty', function() {
+
+            let row = $(this).closest('tr');
+
+            let price = parseFloat(row.find('.price').val()) || 0;
+            let qty = parseFloat(row.find('.qty').val()) || 0;
+
+            row.find('.total').val(price * qty);
+
+            calculateEmployeeAmount(); // 👈 สำคัญ
         });
     </script>
 @endsection

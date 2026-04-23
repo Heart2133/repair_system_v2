@@ -13,12 +13,7 @@
                         <th>เลขที่เอกสาร</th>
                         <th>สาขา</th>
                         <th>มูลค่า</th>
-                        {{-- <th>SAP</th> --}}
-                        {{-- <th>ส่วนลด (%)</th>
-                        <th>ส่วนลด (บาท)</th>
-                        <th>ราคาขาย</th> --}}
                         <th>จัดการ</th>
-
                     </tr>
                 </thead>
 
@@ -191,8 +186,11 @@
 
             let row = $(this).closest('tr');
             let id = $(this).data('id');
-            let flowType = $(this).data('flow'); // ✅ เพิ่ม
-
+            let flowType = ($(this).data('flow') || '')
+                .toString()
+                .trim()
+                .toLowerCase(); // ✅ เพิ่ม
+                
             let total = parseFloat(row.find('td:nth-child(3)').text().replace(/,/g, '')) || 0;
 
             // =========================
@@ -214,7 +212,6 @@
                         _token: '{{ csrf_token() }}',
                         id: id,
                         action: 'approved'
-                        // ❌ ไม่มี discount
                     }, function(res) {
 
                         if (!res.success) {
@@ -229,11 +226,48 @@
 
                 });
 
-                return; // ⛔ หยุดไม่ให้ไป discount
+                return;
+            }
+
+
+            // =========================
+            // 🔥 CASE 2: CLAIM (เพิ่มใหม่)
+            // =========================
+            if (flowType === 'claim') {
+
+                Swal.fire({
+                    title: 'ยืนยันอนุมัติ',
+                    text: 'ส่งรายการนี้เข้าสู่กระบวนการเคลมใช่หรือไม่?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'ยืนยัน'
+                }).then((result) => {
+
+                    if (!result.isConfirmed) return;
+
+                    $.post("{{ route('damage.admin.action') }}", {
+                        _token: '{{ csrf_token() }}',
+                        id: id,
+                        action: 'approved'
+                    }, function(res) {
+
+                        if (!res.success) {
+                            Swal.fire('ผิดพลาด', res.error, 'error');
+                            return;
+                        }
+
+                        Swal.fire('สำเร็จ', 'ส่งเคลมแล้ว', 'success')
+                            .then(() => location.reload());
+
+                    });
+
+                });
+
+                return;
             }
 
             // =========================
-            // 🔥 CASE 2: DISCOUNT
+            // 🔥 CASE 3: DISCOUNT
             // =========================
             let percentDefault = $(this).data('percent') || 0;
 
@@ -314,7 +348,7 @@
                     _token: '{{ csrf_token() }}',
                     id: id,
                     action: 'approved',
-                    discount_percent: result.value.percent
+                    manager_discount_percent: result.value.percent
                 }, function(res) {
 
                     if (!res.success) {

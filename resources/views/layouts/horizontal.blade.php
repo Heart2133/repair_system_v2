@@ -491,44 +491,89 @@
                         <ul class="dropdown-menu w-100" aria-labelledby="damageDropdown">
 
                             <li>
-                                <a class="dropdown-item" href="{{ route('damage-report') }}">
-                                    📄 แจ้งรายการ
+                                <a class="dropdown-item d-flex justify-content-between align-items-center"
+                                    href="{{ route('damage-report') }}">
+                                    <span>📄 แจ้งรายการ</span>
                                 </a>
                             </li>
 
                             <li>
-                                <a class="dropdown-item" href="{{ route('manager-approve') }}">
-                                    👤 อนุมัติ (Manager)
+                                <a class="dropdown-item d-flex justify-content-between align-items-center"
+                                    href="{{ route('manager-approve') }}">
+                                    <span>👤 อนุมัติ (Manager)</span>
+                                    @if (($menuCounts['manager'] ?? 0) > 0)
+                                        <span class="badge bg-warning">{{ $menuCounts['manager'] }}</span>
+                                    @endif
                                 </a>
                             </li>
 
                             <li>
-                                <a class="dropdown-item" href="{{ route('admin-approve') }}">
-                                    🧑‍💼 ผู้บริหารอนุมัติ
+                                <a class="dropdown-item d-flex justify-content-between align-items-center"
+                                    href="{{ route('admin-approve') }}">
+                                    <span>🧑‍💼 ผู้บริหารอนุมัติ</span>
+                                    @if (($menuCounts['admin'] ?? 0) > 0)
+                                        <span class="badge bg-info">{{ $menuCounts['admin'] }}</span>
+                                    @endif
                                 </a>
                             </li>
 
                             <li>
-                                <a class="dropdown-item" href="{{ route('branch.sap') }}">
-                                    📑 บันทึก SAP
+                                <a class="dropdown-item d-flex justify-content-between align-items-center"
+                                    href="{{ route('claim.follow') }}">
+                                    <span>📦 ติดตามเคลม (Claim)</span>
+                                    @if (($menuCounts['claim'] ?? 0) > 0)
+                                        <span class="badge bg-warning">{{ $menuCounts['claim'] }}</span>
+                                    @endif
                                 </a>
                             </li>
 
                             <li>
-                                <a class="dropdown-item" href="{{ route('hr.approve') }}">
-                                    💰 หักเงินเดือน (HR)
+                                <a class="dropdown-item d-flex justify-content-between align-items-center"
+                                    href="{{ route('accounting') }}">
+                                    <span>📊 บัญชี (ปิดงาน)</span>
+                                    @if (($menuCounts['accounting'] ?? 0) > 0)
+                                        <span class="badge bg-danger">{{ $menuCounts['accounting'] }}</span>
+                                    @endif
                                 </a>
                             </li>
 
                             <li>
-                                <a class="dropdown-item" href="{{ route('destroy.list') }}">
-                                    🔥 ทำลายสินค้า
+                                <a class="dropdown-item d-flex justify-content-between align-items-center"
+                                    href="{{ route('branch.sap') }}">
+                                    <span>📑 บันทึก SAP</span>
+                                    @if (($menuCounts['sap'] ?? 0) > 0)
+                                        <span class="badge bg-primary">{{ $menuCounts['sap'] }}</span>
+                                    @endif
                                 </a>
                             </li>
 
                             <li>
-                                <a class="dropdown-item" href="{{ route('discount.list') }}">
-                                    🏷️ ปริ้นสติ๊กเกอร์
+                                <a class="dropdown-item d-flex justify-content-between align-items-center"
+                                    href="{{ route('hr.approve') }}">
+                                    <span>💰 หักเงินเดือน (HR)</span>
+                                    @if (($menuCounts['hr'] ?? 0) > 0)
+                                        <span class="badge bg-dark">{{ $menuCounts['hr'] }}</span>
+                                    @endif
+                                </a>
+                            </li>
+
+                            <li>
+                                <a class="dropdown-item d-flex justify-content-between align-items-center"
+                                    href="{{ route('destroy.list') }}">
+                                    <span>🔥 ทำลายสินค้า</span>
+                                    @if (($menuCounts['destroy'] ?? 0) > 0)
+                                        <span class="badge bg-danger">{{ $menuCounts['destroy'] }}</span>
+                                    @endif
+                                </a>
+                            </li>
+
+                            <li>
+                                <a class="dropdown-item d-flex justify-content-between align-items-center"
+                                    href="{{ route('discount.list') }}">
+                                    <span>🏷️ ปริ้นสติ๊กเกอร์</span>
+                                    @if (($menuCounts['discount'] ?? 0) > 0)
+                                        <span class="badge bg-success">{{ $menuCounts['discount'] }}</span>
+                                    @endif
                                 </a>
                             </li>
 
