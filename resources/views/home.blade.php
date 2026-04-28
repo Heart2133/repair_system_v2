@@ -14,6 +14,44 @@
     <link href="{{ URL::asset('assets/libs/select2/select2.min.css') }}" rel="stylesheet" type="text/css" />
     <!-- Sweet Alert-->
     <link href="{{ URL::asset('/assets/libs/sweetalert2/sweetalert2.min.css') }}" rel="stylesheet" type="text/css" />
+
+    <style>
+        .radio-box {
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-block;
+        }
+
+        .radio-box:hover {
+            border-color: #0d6efd;
+        }
+
+        input[type="radio"]:checked+.radio-box {
+            border-color: #0d6efd;
+            background-color: #e7f1ff;
+            font-weight: 500;
+        }
+
+        .radio-hidden {
+            display: none;
+        }
+
+        #product-table input {
+            width: 100%;
+        }
+
+        #employee-table input {
+            width: 100%;
+        }
+
+        table th,
+        table td {
+            vertical-align: middle;
+        }
+    </style>
 @endsection
 
 @section('content')
@@ -58,8 +96,6 @@
 
                                         <!-- 🔵 ซ้าย -->
                                         <div class="col-md-6">
-
-
                                             <div class="row">
 
                                                 <!-- 🔹 รูปแบบการดำเนินการ -->
@@ -72,6 +108,7 @@
                                                         <option value="destroy">ทำลายสินค้า</option>
                                                         <option value="discount">ลดราคา</option>
                                                         <option value="claim">เคลมสินค้า</option>
+                                                        <option value="quality">ปรับปรุงคุณภาพสินค้า</option>
                                                     </select>
                                                 </div>
 
@@ -80,82 +117,75 @@
                                                     <label class="mb-2 d-block">
                                                         ประเภทผู้แจ้ง <span class="text-danger">*</span>
                                                     </label>
+                                                    <select id="report_source" name="report_source" class="form-select">
+                                                        <option value="">-- เลือกประเภทผู้แจ้ง --</option>
 
-                                                    <div class="dropdown w-100">
-                                                        <button
-                                                            class="btn btn-outline-secondary w-100 text-start dropdown-toggle"
-                                                            type="button" data-bs-toggle="dropdown" id="dropdownReport">
-                                                            เลือกประเภทผู้แจ้ง
-                                                        </button>
+                                                        <option value="branch" data-group="all">สาขาแจ้ง</option>
+                                                        <option value="customer" data-group="basic">ลูกค้าแจ้ง</option>
 
-                                                        <ul class="dropdown-menu w-100" id="reportDropdown">
-
-                                                            <li class="dropdown-item source-option" data-group="all"
-                                                                data-value="branch">สาขาแจ้ง</li>
-
-                                                            <li class="dropdown-item source-option" data-group="basic"
-                                                                data-value="customer">ลูกค้าแจ้ง</li>
-
-                                                            <li class="dropdown-item source-option" data-group="claim"
-                                                                data-value="dc">DC แจ้ง</li>
-
-                                                            <li class="dropdown-item source-option" data-group="claim"
-                                                                data-value="purchase_local">จัดซื้อในประเทศ</li>
-
-                                                            <li class="dropdown-item source-option" data-group="claim"
-                                                                data-value="purchase_inter">จัดซื้อต่างประเทศ</li>
-
-                                                        </ul>
-                                                    </div>
-
-                                                    <!-- hidden -->
-                                                    <input type="hidden" id="report_source" name="report_source">
+                                                        <option value="dc" data-group="claim">DC แจ้ง</option>
+                                                        <option value="purchase_local" data-group="claim">
+                                                            จัดซื้อในประเทศ</option>
+                                                        <option value="purchase_inter" data-group="claim">
+                                                            จัดซื้อต่างประเทศ</option>
+                                                    </select>
                                                 </div>
 
+                                                <!-- hidden -->
+                                                <input type="hidden" id="report_source" name="report_source">
                                             </div>
 
-                                            <div class="mb-4">
-                                                <label class="mb-2 d-block">
-                                                    ประเภทสินค้า <span class="text-danger">*</span>
-                                                </label>
+                                            <div class="row">
 
-                                                <div class="d-flex gap-4">
-                                                    <div class="form-check">
-                                                        <input type="radio" class="form-check-input" name="product_type"
-                                                            value="domestic">
-                                                        <label class="form-check-label">ในประเทศ</label>
-                                                    </div>
+                                                <!-- 🔹 ประเภทสินค้า -->
+                                                <div class="col-md-6 mb-4">
+                                                    <label class="mb-2 d-block">
+                                                        ประเภทสินค้า <span class="text-danger">*</span>
+                                                    </label>
 
-                                                    <div class="form-check">
-                                                        <input type="radio" class="form-check-input" name="product_type"
-                                                            value="international">
-                                                        <label class="form-check-label">นอกประเทศ</label>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                                    <div class="d-flex gap-4">
+                                                        <div class="form-check">
+                                                            <input type="radio" class="form-check-input"
+                                                                name="product_type" value="domestic">
+                                                            <label class="form-check-label">ในประเทศ</label>
+                                                        </div>
 
-                                            <div class="mb-4">
-                                                <label class="mb-2 d-block">
-                                                    ประเภทปัญหา <span class="text-danger">*</span>
-                                                </label>
-
-                                                <div class="d-flex flex-column gap-2">
-                                                    <div class="form-check">
-                                                        <input type="radio" name="issue_type" value="defect"
-                                                            class="form-check-input">
-                                                        <label class="form-check-label">สินค้าด้อยคุณภาพจากการผลิต</label>
-                                                    </div>
-
-                                                    <div class="form-check">
-                                                        <input type="radio" name="issue_type" value="claimable"
-                                                            class="form-check-input">
-                                                        <label
-                                                            class="form-check-label">สินค้าเสียหายที่สามารถเคลมได้</label>
+                                                        <div class="form-check">
+                                                            <input type="radio" class="form-check-input"
+                                                                name="product_type" value="international">
+                                                            <label class="form-check-label">นอกประเทศ</label>
+                                                        </div>
                                                     </div>
                                                 </div>
+
+                                                <!-- 🔹 ประเภทปัญหา -->
+                                                <div class="col-md-6 mb-4">
+                                                    <label class="mb-2 d-block">
+                                                        ประเภทปัญหา <span class="text-danger">*</span>
+                                                    </label>
+
+                                                    <div class="d-flex flex-column gap-2">
+                                                        <div class="form-check">
+                                                            <input type="radio" name="issue_type" value="defect"
+                                                                class="form-check-input">
+                                                            <label
+                                                                class="form-check-label">สินค้าด้อยคุณภาพจากการผลิต</label>
+                                                        </div>
+
+                                                        <div class="form-check">
+                                                            <input type="radio" name="issue_type" value="claimable"
+                                                                class="form-check-input">
+                                                            <label
+                                                                class="form-check-label">สินค้าเสียหายที่สามารถเคลมได้</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
                                             </div>
 
                                         </div>
+
+
 
                                         <!-- 🟢 ขวา -->
                                         <div class="col-md-6">
@@ -191,6 +221,11 @@
                                                 <input type="text" class="form-control" id="purchase_name">
                                             </div>
 
+                                            <div class="mb-4 quality-section" style="display:none;">
+                                                <label class="mb-2 d-block">วันที่ลูกค้าแจ้ง</label>
+                                                <input type="date" class="form-control" id="customer_date">
+                                            </div>
+
                                             <div class="mb-4">
                                                 <label class="mb-2 d-block">สาเหตุความเสียหาย <span
                                                         class="text-danger">*</span></label>
@@ -203,112 +238,116 @@
                                             </div>
 
                                         </div>
-
                                     </div>
 
                                 </div>
-                            </div>
-                        </div>
-
-                        <!-- 🟢 ล่าง -->
-                        <div class="col-12">
-                            <div class="row">
-
-                                <!-- 📦 สินค้า -->
-                                <div class="card mb-3">
-                                    <div class="card-header">ข้อมูลสินค้า</div>
-
-                                    <div class="table-responsive">
-                                        <table class="table table-bordered align-middle" id="product-table">
-                                            <thead class="table-light">
-                                                <tr>
-                                                    <th style="width:7%">รหัสสินค้า</th>
-                                                    <th style="width:13%">ชื่อสินค้า</th>
-                                                    <th style="width:10%">ราคาต่อหน่วย</th>
-                                                    <th style="width:10%">จำนวน</th>
-                                                    <th style="width:10%">รวม</th>
-                                                    <th style="width:5%">จัดการ</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="product-wrapper">
-
-                                                <!-- ✅ row -->
-                                                <tr class="product-row">
-                                                    <td><input type="text" class="form-control product_code" placeholder="กรุณากรอกรหัสสินค้า"></td>
-                                                    <td><input type="text" class="form-control product_name" disabled></td>
-                                                    <td><input type="text" class="form-control price" disabled></td>
-                                                    <td><input type="number" class="form-control qty" placeholder="กรุณากรอกจำนวน"></td>
-                                                    <td><input type="text" class="form-control total" disabled></td>
-                                                    <td class="text-center">
-                                                        <button type="button"
-                                                            class="btn btn-danger btn-sm btn-remove-product">
-                                                            ลบ
-                                                        </button>
-                                                    </td>
-                                                </tr>
-
-                                            </tbody>
-                                        </table>
-                                    </div>
-
-                                    <div class="p-3">
-                                        <button type="button" id="add-product" class="btn btn-success btn-sm">
-                                            + เพิ่มสินค้า
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <!-- 👨‍💼 ผู้รับผิดชอบ -->
-                                <div class="card mb-3">
-                                    <div class="card-header">ผู้รับผิดชอบ</div>
-
-                                    <div class="table-responsive">
-                                        <table class="table table-bordered align-middle" id="employee-table">
-                                            <thead class="table-light">
-                                                <tr>
-                                                    <th style="width:7%">รหัสพนักงาน</th>
-                                                    <th style="width:13%">ชื่อพนักงาน</th>
-                                                    <th style="width:10%">% ความรับผิดชอบ</th>
-                                                    <th style="width:10%">มูลค่า</th>
-                                                    <th style="width:5%">จัดการ</th>
-                                                </tr>
-                                            </thead>
-
-                                            <tbody id="employee-wrapper">
-
-                                                <!-- ✅ row -->
-                                                <tr class="employee-row">
-                                                    <td><input type="text" class="form-control emp_code" placeholder="กรุณากรอกรหัสพนักงาน"></td>
-                                                    <td><input type="text" class="form-control emp_name" placeholder="กรุณากรอกชื่อพนักงาน"></td>
-                                                    <td><input type="number" class="form-control emp_percent" placeholder="กรุณากรอก% ความรับผิดชอบ"></td>
-                                                    <td><input type="text" class="form-control emp_amount" disabled>
-                                                    </td>
-                                                    <td class="text-center">
-                                                        <button type="button" class="btn btn-danger btn-sm btn-remove">
-                                                            ลบ
-                                                        </button>
-                                                    </td>
-                                                </tr>
-
-                                            </tbody>
-                                        </table>
-                                    </div>
-
-                                    <div class="p-3">
-                                        <button type="button" class="btn btn-success btn-sm" id="add-employee">
-                                            + เพิ่มพนักงาน
-                                        </button>
-                                    </div>
-                                </div>
-
 
                             </div>
                         </div>
+                    </div>
 
+                    <!-- 🟢 ล่าง -->
+                    <div class="col-12">
+                        <div class="row">
+
+                            <!-- 📦 สินค้า -->
+                            <div class="card mb-3">
+                                <div class="card-header">ข้อมูลสินค้า</div>
+
+                                <div class="table-responsive">
+                                    <table class="table table-bordered align-middle" id="product-table">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th style="width:15%">รหัสสินค้า</th>
+                                                <th style="width:28%">ชื่อสินค้า</th>
+                                                <th style="width:15%">ราคาต่อหน่วย</th>
+                                                <th style="width:15%">จำนวน</th>
+                                                <th style="width:20%">รวม</th>
+                                                <th style="width:7%">จัดการ</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="product-wrapper">
+
+                                            <!-- ✅ row -->
+                                            <tr class="product-row">
+                                                <td><input type="text" class="form-control product_code"
+                                                        placeholder="กรุณากรอกรหัสสินค้า"></td>
+                                                <td><input type="text" class="form-control product_name" disabled>
+                                                </td>
+                                                <td><input type="text" class="form-control price" disabled></td>
+                                                <td><input type="number" class="form-control qty"
+                                                        placeholder="กรุณากรอกจำนวน"></td>
+                                                <td><input type="text" class="form-control total" disabled></td>
+                                                <td class="text-center">
+                                                    <button type="button"
+                                                        class="btn btn-danger btn-sm btn-remove-product">
+                                                        ลบ
+                                                    </button>
+                                                </td>
+                                            </tr>
+
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div class="p-1">
+                                    <button type="button" id="add-product" class="btn btn-success btn-sm">
+                                        + เพิ่มสินค้า
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- 👨‍💼 ผู้รับผิดชอบ -->
+                            <div class="card mb-3 employee-card">
+                                <div class="card-header">ผู้รับผิดชอบ</div>
+
+                                <div class="table-responsive">
+                                    <table class="table table-bordered align-middle" id="employee-table">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th style="width:7%">รหัสพนักงาน</th>
+                                                <th style="width:13%">ชื่อพนักงาน</th>
+                                                <th style="width:10%">% ความรับผิดชอบ</th>
+                                                <th style="width:10%">มูลค่า</th>
+                                                <th style="width:2%">จัดการ</th>
+                                            </tr>
+                                        </thead>
+
+                                        <tbody id="employee-wrapper">
+
+                                            <!-- ✅ row -->
+                                            <tr class="employee-row">
+                                                <td><input type="text" class="form-control emp_code"
+                                                        placeholder="กรุณากรอกรหัสพนักงาน"></td>
+                                                <td><input type="text" class="form-control emp_name"
+                                                        placeholder="กรุณากรอกชื่อพนักงาน"></td>
+                                                <td><input type="number" class="form-control emp_percent"
+                                                        placeholder="กรุณากรอก% ความรับผิดชอบ"></td>
+                                                <td><input type="text" class="form-control emp_amount" disabled>
+                                                </td>
+                                                <td class="text-center">
+                                                    <button type="button" class="btn btn-danger btn-sm btn-remove">
+                                                        ลบ
+                                                    </button>
+                                                </td>
+                                            </tr>
+
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div class="p-1">
+                                    <button type="button" class="btn btn-success btn-sm" id="add-employee">
+                                        + เพิ่มพนักงาน
+                                    </button>
+                                </div>
+                            </div>
+
+
+                        </div>
                     </div>
 
                 </div>
-
                 <!-- FOOTER -->
                 <div class="modal-footer">
                     <button type="button" class="btn btn-primary BTNsave"> บันทึก</button>
@@ -316,8 +355,11 @@
                 </div>
 
             </div>
+
         </div>
+
     </div>
+
 
 
 
@@ -699,7 +741,7 @@
                 });
                 return false;
             }
-            
+
 
             let hasProduct = false;
 
@@ -752,12 +794,28 @@
                 }
             });
 
-            if (!hasEmployee) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'กรุณาเพิ่มพนักงานอย่างน้อย 1 คน'
+            if ($('#flow_type').val() !== 'quality') {
+
+                if (!hasEmployee) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'กรุณาเพิ่มพนักงานอย่างน้อย 1 คน'
+                    });
+                    return false;
+                }
+
+                let totalPercent = 0;
+                $('.emp_percent').each(function() {
+                    totalPercent += parseFloat($(this).val()) || 0;
                 });
-                return false;
+
+                if (totalPercent !== 100) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'เปอร์เซ็นต์ไม่ถูกต้อง'
+                    });
+                    return false;
+                }
             }
 
             // ✅ 3. ตรวจ % รวม
@@ -800,16 +858,6 @@
 
             return true;
         }
-
-        $(document).on('keyup change', '.qty', function() {
-
-            let row = $(this).closest('.product-row');
-
-            let price = parseFloat(row.find('.price').val()) || 0;
-            let qty = parseFloat(row.find('.qty').val()) || 0;
-
-            row.find('.total').val(price * qty);
-        });
 
         $(document).on('click', '#add-employee', function() {
 
@@ -875,19 +923,37 @@
 
             let flow = $(this).val();
 
-            $('.source-option').hide();
+            // reset ค่า
             $('#report_source').val('');
-            $('#dropdownReport').text('เลือกประเภทผู้แจ้ง');
+
+            // ซ่อนทั้งหมดก่อน
+            $('#report_source option').hide();
+
+            // ให้ option default แสดงเสมอ
+            $('#report_source option[value=""]').show();
+
+            if (flow === 'quality') {
+                $('.quality-section').show();
+                $('.employee-card').hide();
+            } else {
+                $('.quality-section').hide();
+                $('.employee-card').show();
+            }
 
             if (flow === 'destroy' || flow === 'discount') {
 
-                $('.source-option[data-group="all"]').show();
-                $('.source-option[data-group="basic"]').show();
+                $('#report_source option[data-group="all"]').show();
+                $('#report_source option[data-group="basic"]').show();
 
             } else if (flow === 'claim') {
 
-                $('.source-option[data-group="all"]').show();
-                $('.source-option[data-group="claim"]').show();
+                $('#report_source option[data-group="all"]').show();
+                $('#report_source option[data-group="claim"]').show();
+
+            } else if (flow === 'quality') {
+
+                $('#report_source option[data-group="all"]').show();
+                $('#report_source option[data-group="claim"]').show();
             }
 
         });

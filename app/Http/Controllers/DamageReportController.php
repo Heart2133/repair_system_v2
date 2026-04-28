@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\DamageReport;
+use App\Models\DamageReportItem;
+use App\Models\DamageReportEmployee;
 
 class DamageReportController extends Controller
 {
@@ -41,6 +43,77 @@ class DamageReportController extends Controller
             'claim',
             'reports'
         ));
+    }
+
+    public function update(Request $request)
+    {
+        try {
+
+            $report = DamageReport::where('id', $request->id)->first();
+
+            if (!$report) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'ไม่พบข้อมูล'
+                ]);
+            }
+
+            // update header
+            $report->branch_code = $request->branch_code;
+            $report->flow_type = $request->flow_type;
+            $report->damage_reason = $request->damage_reason;
+            $report->product_type = $request->product_type;
+            $report->issue_type = $request->issue_type;
+            $report->report_type = $request->report_type;
+            $total = 0; // คำนวณ total ใหม่
+            $report->save();
+
+            // 🔥 ลบของเก่า
+            DamageReportItem::where('damage_report_id', $report->id)->delete();
+            DamageReportEmployee::where('damage_report_id', $report->id)->delete();
+
+            // 🔥 insert items ใหม่
+            foreach ($request->items as $i) {
+
+                $lineTotal = $i['price'] * $i['qty']; // ✅ คำนวณใหม่
+
+                $total += $lineTotal; // ✅ สะสมยอดรวม
+
+                DamageReportItem::create([
+                    'damage_report_id' => $report->id,
+                    'product_code' => $i['product_code'],
+                    'product_name' => $i['product_name'],
+                    'price' => $i['price'],
+                    'qty' => $i['qty'],
+                    'total' => $lineTotal, // ใช้ค่าที่คำนวณ
+                ]);
+            }
+
+            $report->total_amount = $total;
+            $report->save();
+
+
+            // 🔥 insert employee ใหม่
+            if ($request->employees) {
+                foreach ($request->employees as $e) {
+                    DamageReportEmployee::create([
+                        'damage_report_id' => $report->id,
+                        'emp_code' => $e['emp_code'],
+                        'emp_name' => $e['emp_name'],
+                        'percent' => $e['percent'],
+                        'amount' => $e['amount'],
+                    ]);
+                }
+            }
+
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ]);
+        }
     }
     // public function index()
     // {
@@ -758,5 +831,12 @@ class DamageReportController extends Controller
         ]);
 
         return response()->json(['success' => true]);
+    }
+
+    public function getDetail(Request $request)
+    {
+        $report = DamageReport::with(['items', 'employees'])->find($request->id);
+
+        return response()->json($report);
     }
 }

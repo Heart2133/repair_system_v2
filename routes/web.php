@@ -31,9 +31,13 @@ Route::get('/get-employee', [DamageReportController::class, 'getEmployee'])->nam
 
 Route::get('/manager-approve', [DamageReportController::class, 'managerApprove'])->name('manager-approve');
 Route::post('/damage-report/approve-action', [DamageReportController::class, 'approveAction'])->name('damage.approve.action');
+Route::get('damage-report/detail', [DamageReportController::class, 'getDetail']);
+Route::get('damage-report/get-product', [DamageReportController::class, 'getProduct']);
+Route::get('damage-report/get-employee', [DamageReportController::class, 'getEmployee']);
 
 Route::get('/admin-approve', [DamageReportController::class, 'adminApprove'])->name('admin-approve');
 Route::post('/damage-report/admin-action', [DamageReportController::class, 'adminAction'])->name('damage.admin.action');
+Route::post('damage-report/update', [DamageReportController::class, 'update']);
 
 Route::get('/destroy-list', [DamageReportController::class, 'destroyList'])->name('destroy.list');
 Route::get('/destroy-form/{id}', [DamageReportController::class, 'destroyForm'])->name('destroy.form');
