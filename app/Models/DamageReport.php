@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Branch;
 use App\Models\DamageReportItem;
 use App\Models\DamageReportEmployee;
+use App\Models\DamageReportImage;
+use App\Models\DamageReportAttachment;
 
 class DamageReport extends Model
 {
@@ -23,5 +25,13 @@ class DamageReport extends Model
     public function employees()
     {
         return $this->hasMany(DamageReportEmployee::class, 'damage_report_id');
+    }
+
+    public function files()
+    {
+        return $this->hasMany(
+            DamageReportAttachment::class,
+            'damage_report_id'
+        );
     }
 }

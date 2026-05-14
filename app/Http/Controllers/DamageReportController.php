@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\DB;
 use App\Models\DamageReport;
 use App\Models\DamageReportItem;
 use App\Models\DamageReportEmployee;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Storage;
 
 class DamageReportController extends Controller
 {
@@ -14,7 +16,10 @@ class DamageReportController extends Controller
     {
         $total = DamageReport::count();
 
-        $pending = DamageReport::where('status', 'pending')->count();
+        $pending = DamageReport::whereIn('status', [
+            'pending',
+            'approved_manager',
+        ])->count();
 
         $claim = DamageReport::where('status', 'waiting_claim_result')->count();
 
@@ -45,39 +50,111 @@ class DamageReportController extends Controller
         ));
     }
 
+    public function managerDetail($id)
+    {
+        $report = DamageReport::with([
+            'items',
+            'employees',
+            'files' // ✅ เพิ่มตรงนี้
+        ])->findOrFail($id);
+
+        return response()->json($report);
+    }
+
     public function update(Request $request)
     {
+        DB::beginTransaction();
+
         try {
 
-            $report = DamageReport::where('id', $request->id)->first();
+            $items = is_array($request->items)
+                ? $request->items
+                : json_decode($request->items, true);
+
+            $employees = is_array($request->employees)
+                ? $request->employees
+                : json_decode($request->employees, true);
+
+            if (!is_array($items) || count($items) == 0) {
+
+                return response()->json([
+                    'success' => false,
+                    'error' => 'ไม่พบรายการสินค้า'
+                ]);
+            }
+
+            if (!is_array($employees)) {
+                $employees = [];
+            }
+
+            $report = DamageReport::find($request->id);
 
             if (!$report) {
+
                 return response()->json([
                     'success' => false,
                     'error' => 'ไม่พบข้อมูล'
                 ]);
             }
 
+            // 🔥 อนุญาตแก้เฉพาะ pending
+            if ($report->status != 'pending') {
+
+                return response()->json([
+                    'success' => false,
+                    'error' => 'ไม่สามารถแก้ไขรายการนี้ได้'
+                ]);
+            }
+
+            // validate %
+            $totalPercent = collect($employees)->sum('percent');
+
+            if ($totalPercent != 100) {
+
+                return response()->json([
+                    'success' => false,
+                    'error' => 'เปอร์เซ็นต์ต้องรวม 100%'
+                ]);
+            }
+
+            // =======================
             // update header
+            // =======================
+
             $report->branch_code = $request->branch_code;
             $report->flow_type = $request->flow_type;
             $report->damage_reason = $request->damage_reason;
             $report->product_type = $request->product_type;
             $report->issue_type = $request->issue_type;
             $report->report_type = $request->report_type;
-            $total = 0; // คำนวณ total ใหม่
+
             $report->save();
 
-            // 🔥 ลบของเก่า
-            DamageReportItem::where('damage_report_id', $report->id)->delete();
-            DamageReportEmployee::where('damage_report_id', $report->id)->delete();
+            // =======================
+            // delete old items/employees
+            // =======================
 
-            // 🔥 insert items ใหม่
-            foreach ($request->items as $i) {
+            DamageReportItem::where(
+                'damage_report_id',
+                $report->id
+            )->delete();
 
-                $lineTotal = $i['price'] * $i['qty']; // ✅ คำนวณใหม่
+            DamageReportEmployee::where(
+                'damage_report_id',
+                $report->id
+            )->delete();
 
-                $total += $lineTotal; // ✅ สะสมยอดรวม
+            // =======================
+            // items
+            // =======================
+
+            $total = 0;
+
+            foreach ($items as $i) {
+
+                $lineTotal = $i['price'] * $i['qty'];
+
+                $total += $lineTotal;
 
                 DamageReportItem::create([
                     'damage_report_id' => $report->id,
@@ -85,28 +162,140 @@ class DamageReportController extends Controller
                     'product_name' => $i['product_name'],
                     'price' => $i['price'],
                     'qty' => $i['qty'],
-                    'total' => $lineTotal, // ใช้ค่าที่คำนวณ
+                    'total' => $lineTotal,
                 ]);
             }
+
+            // =======================
+            // update total
+            // =======================
 
             $report->total_amount = $total;
             $report->save();
 
+            // =======================
+            // employees
+            // =======================
 
-            // 🔥 insert employee ใหม่
-            if ($request->employees) {
-                foreach ($request->employees as $e) {
-                    DamageReportEmployee::create([
+            foreach ($employees as $e) {
+
+                $amount = (
+                    $total * ($e['percent'] ?? 0)
+                ) / 100;
+
+                DamageReportEmployee::create([
+                    'damage_report_id' => $report->id,
+                    'emp_code' => $e['emp_code'] ?? null,
+                    'emp_name' => $e['emp_name'] ?? null,
+                    'percent' => $e['percent'] ?? 0,
+                    'amount' => $amount,
+                ]);
+            }
+
+            // =======================
+            // ลบไฟล์เก่า
+            // =======================
+
+            $deletedFiles = is_array($request->deleted_files)
+                ? $request->deleted_files
+                : json_decode($request->deleted_files, true);
+
+            if (!empty($deletedFiles)) {
+
+                $files = DB::table('damage_report_attachments')
+                    ->whereIn('id', $deletedFiles)
+                    ->get();
+
+                foreach ($files as $file) {
+
+                    // ลบไฟล์จริง
+                    if (
+                        $file->file_path &&
+                        Storage::disk('public')->exists($file->file_path)
+                    ) {
+                        Storage::disk('public')->delete($file->file_path);
+                    }
+                }
+
+                // ลบ record
+                DB::table('damage_report_attachments')
+                    ->whereIn('id', $deletedFiles)
+                    ->delete();
+            }
+
+            // =======================
+            // เพิ่มไฟล์ใหม่
+            // =======================
+
+            if ($request->hasFile('attachments')) {
+
+                foreach ($request->file('attachments') as $file) {
+
+                    $path = $file->store(
+                        'damage_attachments',
+                        'public'
+                    );
+
+                    DB::table('damage_report_attachments')->insert([
                         'damage_report_id' => $report->id,
-                        'emp_code' => $e['emp_code'],
-                        'emp_name' => $e['emp_name'],
-                        'percent' => $e['percent'],
-                        'amount' => $e['amount'],
+                        'file_path' => $path,
+                        'created_at' => now(),
+                        'updated_at' => now(),
                     ]);
                 }
             }
 
-            return response()->json(['success' => true]);
+            DB::commit();
+
+            return response()->json([
+                'success' => true
+            ]);
+        } catch (\Exception $e) {
+
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ]);
+        }
+    }
+
+    public function deleteFile(Request $request)
+    {
+        try {
+
+            $file = DB::table('damage_report_attachments')
+                ->where('id', $request->id)
+                ->first();
+
+            if (!$file) {
+
+                return response()->json([
+                    'success' => false,
+                    'error' => 'ไม่พบไฟล์'
+                ]);
+            }
+
+            // ลบไฟล์จริง
+            if (
+                $file->file_path &&
+                Storage::disk('public')->exists($file->file_path)
+            ) {
+
+                Storage::disk('public')->delete(
+                    $file->file_path
+                );
+            }
+
+            // ลบ db
+            DB::table('damage_report_attachments')
+                ->where('id', $request->id)
+                ->delete();
+
+            return response()->json([
+                'success' => true
+            ]);
         } catch (\Exception $e) {
 
             return response()->json([
@@ -124,6 +313,14 @@ class DamageReportController extends Controller
 
     public function store(Request $request)
     {
+
+        $items = is_array($request->items)
+            ? $request->items
+            : json_decode($request->items, true);
+
+        $employees = is_array($request->employees)
+            ? $request->employees
+            : json_decode($request->employees, true);
         $request->validate([
             'branch_code'   => 'required',
             'report_type'   => 'required',
@@ -131,8 +328,9 @@ class DamageReportController extends Controller
             'flow_type'     => 'required',
             'issue_type'    => 'required',
             'damage_reason' => 'required',
-            'items'         => 'required|array|min:1',
-            'employees'     => 'required|array|min:1',
+            'items' => 'required',
+            'employees' => 'required',
+            'attachments.*' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
         ]);
 
         DB::beginTransaction();
@@ -153,12 +351,12 @@ class DamageReportController extends Controller
 
             // 🔥 คำนวณ total ใหม่
             $totalAmount = 0;
-            foreach ($request->items as $item) {
+            foreach ($items as $item) {
                 $totalAmount += ($item['price'] * $item['qty']);
             }
 
             // 🔥 validate %
-            $totalPercent = collect($request->employees)->sum('percent');
+            $totalPercent = collect($employees)->sum('percent');
             if ($totalPercent != 100) {
                 return response()->json([
                     'success' => false,
@@ -168,6 +366,7 @@ class DamageReportController extends Controller
 
             // ✅ insert header
             $reportId = DB::table('damage_reports')->insertGetId([
+
                 'doc_no'        => $doc_no,
                 'branch_code'   => $request->branch_code,
                 'report_type'   => $request->report_type,
@@ -183,8 +382,29 @@ class DamageReportController extends Controller
                 'updated_at'    => now(),
             ]);
 
+            // =======================
+            // upload attachment
+            // =======================
+            if ($request->hasFile('attachments')) {
+
+                foreach ($request->file('attachments') as $file) {
+
+                    $path = $file->store(
+                        'damage_attachments',
+                        'public'
+                    );
+
+                    DB::table('damage_report_attachments')->insert([
+                        'damage_report_id' => $reportId,
+                        'file_path' => $path,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+            }
+
             // ✅ items
-            foreach ($request->items as $item) {
+            foreach ($items as $item) {
 
                 if (empty($item['product_code'])) continue;
 
@@ -201,7 +421,7 @@ class DamageReportController extends Controller
             }
 
             // ✅ employees
-            foreach ($request->employees as $emp) {
+            foreach ($employees as $emp) {
 
                 DB::table('damage_report_employees')->insert([
                     'damage_report_id' => $reportId,
@@ -499,15 +719,26 @@ class DamageReportController extends Controller
     {
         $reports = DB::table('damage_reports')
             ->where('status', 'hr_done')
-            ->where('flow_type', 'destroy') // 🔥 เพิ่มตรงนี้
+            ->where('flow_type', 'destroy')
             ->get();
 
-        return view('destroy-list', compact('reports'));
+        $report = $reports->first();
+
+        return view('destroy-list', compact(
+            'reports',
+            'report'
+        ));
     }
 
     public function destroyPrint($id)
     {
-        $report = DB::table('damage_reports')->where('id', $id)->first();
+        $report = DB::table('damage_reports')
+            ->where('id', $id)
+            ->first();
+
+        if (!$report) {
+            abort(404);
+        }
 
         $items = DB::table('damage_report_items')
             ->where('damage_report_id', $id)
@@ -517,7 +748,17 @@ class DamageReportController extends Controller
             ->where('damage_report_id', $id)
             ->first();
 
-        return view('destroy-print', compact('report', 'items', 'destroy'));
+        $pdf = Pdf::loadView('destroy-print', compact(
+            'report',
+            'items',
+            'destroy'
+        ));
+
+        // เปิด preview pdf บน browser
+        return $pdf->stream('destroy-' . $report->doc_no . '.pdf');
+
+        // ถ้าต้องการ download
+        // return $pdf->download('destroy-'.$report->doc_no.'.pdf');
     }
 
 
@@ -582,7 +823,7 @@ class DamageReportController extends Controller
             if ($report->flow_type == 'claim') {
                 $status = 'waiting_claim_result'; // 🔥 เพิ่ม claim flow
             } else {
-                $status = $hasEmployee ? 'accounting_done' : 'hr_done';
+                $status = $hasEmployee ? 'waiting_accounting' : 'hr_done';
             }
 
             DB::table('damage_reports')
@@ -794,7 +1035,7 @@ class DamageReportController extends Controller
                 ->where('id', $request->id)
                 ->update([
                     'sap_doc' => $request->sap_doc,
-                    'status' => 'completed',
+                    'status' => 'accounting_done',
                     'updated_at' => now()
                 ]);
 
@@ -835,8 +1076,55 @@ class DamageReportController extends Controller
 
     public function getDetail(Request $request)
     {
-        $report = DamageReport::with(['items', 'employees'])->find($request->id);
+        $report = DamageReport::with([
+            'items',
+            'employees',
+            'files'
+        ])->find($request->id);
 
         return response()->json($report);
+    }
+
+    public function delete(Request $request)
+    {
+        $report = DamageReport::find($request->id);
+
+        if (!$report) {
+            return response()->json(['success' => false, 'error' => 'ไม่พบข้อมูล']);
+        }
+
+        $report->delete();
+
+        return response()->json(['success' => true]);
+    }
+
+    public function nextStep(Request $req)
+    {
+        $report = DamageReport::find($req->id);
+
+        if (!$report) {
+            return response()->json(['success' => false, 'error' => 'ไม่พบข้อมูล']);
+        }
+
+        $flow = [
+            'pending' => 'approved_manager',
+            'approved_manager' => 'waiting_branch_sap',
+            'waiting_branch_sap' => 'sap_completed',
+            'sap_completed' => 'accounting_done',
+            'accounting_done' => 'waiting_branch_print',
+            'waiting_branch_print' => 'waiting_accounting',
+            'waiting_accounting' => 'hr_done',
+            'hr_done' => 'destroy_completed',
+            'destroy_completed' => 'completed',
+        ];
+
+        if (!isset($flow[$report->status])) {
+            return response()->json(['success' => false, 'error' => 'step ผิด']);
+        }
+
+        $report->status = $flow[$report->status];
+        $report->save();
+
+        return response()->json(['success' => true]);
     }
 }

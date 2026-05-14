@@ -17,6 +17,7 @@ use App\Http\Controllers\BranchController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\DamageReportController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\DamageReportV2Controller;
 
 Auth::routes();
 
@@ -32,12 +33,20 @@ Route::get('/get-employee', [DamageReportController::class, 'getEmployee'])->nam
 Route::get('/manager-approve', [DamageReportController::class, 'managerApprove'])->name('manager-approve');
 Route::post('/damage-report/approve-action', [DamageReportController::class, 'approveAction'])->name('damage.approve.action');
 Route::get('damage-report/detail', [DamageReportController::class, 'getDetail']);
+Route::post(
+    'damage-report/delete-file',
+    [DamageReportController::class, 'deleteFile']
+);
+
 Route::get('damage-report/get-product', [DamageReportController::class, 'getProduct']);
 Route::get('damage-report/get-employee', [DamageReportController::class, 'getEmployee']);
 
 Route::get('/admin-approve', [DamageReportController::class, 'adminApprove'])->name('admin-approve');
 Route::post('/damage-report/admin-action', [DamageReportController::class, 'adminAction'])->name('damage.admin.action');
 Route::post('damage-report/update', [DamageReportController::class, 'update']);
+Route::post('damage-report/delete', [DamageReportController::class, 'delete']);
+Route::post('damage-report/next-step', [DamageReportController::class, 'nextStep']);
+
 
 Route::get('/destroy-list', [DamageReportController::class, 'destroyList'])->name('destroy.list');
 Route::get('/destroy-form/{id}', [DamageReportController::class, 'destroyForm'])->name('destroy.form');
@@ -60,11 +69,83 @@ Route::post('/claim-action', [DamageReportController::class, 'claimAction'])->na
 // Accounting
 Route::get('/accounting', [DamageReportController::class, 'accounting'])->name('accounting');
 Route::post('/accounting-save', [DamageReportController::class, 'accountingSave'])->name('accounting.save');
+Route::get('/accounting', [DamageReportController::class, 'accounting'])
+    ->name('waiting_accounting');
 
 // Close case (Executive)
 Route::post('/close-case', [DamageReportController::class, 'closeCase'])->name('close.case');
 
+// Route::prefix('damage2')->name('damage2.')->group(function () {
 
+//     // ===============================
+//     // 📄 Report
+//     // ===============================
+//     Route::get('/report', [DamageReportV2Controller::class, 'index'])->name('report');
+//     Route::post('/report/store', [DamageReportV2Controller::class, 'store'])->name('store');
+//     Route::post('/report/update', [DamageReportV2Controller::class, 'update'])->name('update');
+
+//     Route::get('/report/detail', [DamageReportV2Controller::class, 'getDetail'])->name('detail');
+
+//     Route::get('/get-product', [DamageReportV2Controller::class, 'getProduct'])->name('get.product');
+//     Route::get('/get-employee', [DamageReportV2Controller::class, 'getEmployee'])->name('get.employee');
+
+//     // ===============================
+//     // 👤 Manager Approve
+//     // ===============================
+//     Route::get('/manager-approve', [DamageReportV2Controller::class, 'managerApprove'])->name('manager-approve');
+//     Route::post('/approve-action', [DamageReportV2Controller::class, 'approveAction'])->name('approve.action');
+
+//     // ===============================
+//     // 🧑‍💼 Admin Approve
+//     // ===============================
+//     Route::get('/admin-approve', [DamageReportV2Controller::class, 'adminApprove'])->name('admin-approve');
+//     Route::post('/admin-action', [DamageReportV2Controller::class, 'adminAction'])->name('admin.action');
+
+//     // ===============================
+//     // 🔥 Destroy
+//     // ===============================
+//     Route::get('/destroy-list', [DamageReportV2Controller::class, 'destroyList'])->name('destroy.list');
+//     Route::get('/destroy-form/{id}', [DamageReportV2Controller::class, 'destroyForm'])->name('destroy.form');
+//     Route::post('/destroy-store', [DamageReportV2Controller::class, 'destroyStore'])->name('destroy.store');
+//     Route::get('/destroy-print/{id}', [DamageReportV2Controller::class, 'destroyPrint'])->name('destroy.print');
+
+//     // ===============================
+//     // 📑 SAP
+//     // ===============================
+//     Route::get('/branch-sap', [DamageReportV2Controller::class, 'branchSap'])->name('branch.sap');
+//     Route::post('/branch-sap-save', [DamageReportV2Controller::class, 'branchSapSave'])->name('branch.sap.save');
+
+//     // ===============================
+//     // 💰 HR
+//     // ===============================
+//     Route::get('/hr-approve', [DamageReportV2Controller::class, 'hrApprove'])->name('hr.approve');
+//     Route::post('/hr-save', [DamageReportV2Controller::class, 'hrSave'])->name('hr.save');
+
+//     // ===============================
+//     // 🏷️ Discount
+//     // ===============================
+//     Route::get('/discount-list', [DamageReportV2Controller::class, 'discountList'])->name('discount.list');
+//     Route::get('/discount-print/{id}', [DamageReportV2Controller::class, 'discountPrint'])->name('discount.print');
+//     Route::post('/discount-print-save', [DamageReportV2Controller::class, 'discountPrintSave'])->name('discount.print.save');
+
+//     // ===============================
+//     // 📦 Claim
+//     // ===============================
+//     Route::get('/claim-follow', [DamageReportV2Controller::class, 'claimFollow'])->name('claim.follow');
+//     Route::post('/claim-action', [DamageReportV2Controller::class, 'claimAction'])->name('claim.action');
+
+//     // ===============================
+//     // 📊 Accounting
+//     // ===============================
+//     Route::get('/accounting', [DamageReportV2Controller::class, 'accounting'])->name('accounting');
+//     Route::post('/accounting-save', [DamageReportV2Controller::class, 'accountingSave'])->name('accounting.save');
+
+//     // ===============================
+//     // 🔒 Close Case
+//     // ===============================
+//     Route::post('/close-case', [DamageReportV2Controller::class, 'closeCase'])->name('close.case');
+
+// });
 
 // Route::get('/storage-link', function () {
 //     // ลบลิงก์เดิมก่อน (ถ้ามี)

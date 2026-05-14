@@ -497,7 +497,7 @@
                                 </a>
                             </li>
 
-                            <li>
+                            {{-- <li>
                                 <a class="dropdown-item d-flex justify-content-between align-items-center"
                                     href="{{ route('manager-approve') }}">
                                     <span>👤 อนุมัติ (Manager)</span>
@@ -575,10 +575,33 @@
                                         <span class="badge bg-success">{{ $menuCounts['discount'] }}</span>
                                     @endif
                                 </a>
-                            </li>
+                            </li> --}}
 
                         </ul>
                     </li>
+
+                    {{-- <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex justify-content-between align-items-center menu-btn"
+                            href="#" id="damageDropdownV2" role="button" data-bs-toggle="dropdown"
+                            aria-expanded="false">
+
+                            <span>
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                ระบบสินค้าชำรุด
+                                <div class="arrow-down"></div>
+                            </span>
+                        </a>
+
+                        <ul class="dropdown-menu w-100" aria-labelledby="damageDropdownV2">
+
+                            <li>
+                                <a class="dropdown-item" href="{{ route('damage2.report') }}">
+                                    📄 แจ้งรายการ (V2)
+                                </a>
+                            </li>
+
+                        </ul>
+                    </li> --}}
 
 
                     {{-- <li class="nav-item dropdown">
