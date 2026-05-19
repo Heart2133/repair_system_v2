@@ -481,20 +481,33 @@
 
                         $section.append('<option disabled>กรุณาเลือกฝ่าย</option>');
 
+                        // <<<<<< เพิ่มตรงนี้ >>>>>>
+                        const jobText =
+                            $('select[name="job_position_id"] option:selected').text();
+
                         data.forEach(item => {
+
                             const secId = item.section_id ?? item.id ?? '';
                             const secEn = item.section_en ?? '';
                             const secTh = item.section_th ?? '';
 
-                            // ✅ value เป็น TH, แต่เก็บ EN/ID ใน data-*
-                            $section.append(
-                                `<option value="${secTh}"
+                            if (
+                                secEn === 'BM' &&
+                                !(roleVal === 'manager' &&
+                                    jobText.includes('ผจก.ฝ่าย/สาขา'))
+                            ) {
+                                return;
+                            }
+
+                            $section.append(`
+                                <option value="${secTh}"
                                     data-section-id="${secId}"
                                     data-section-en="${secEn}"
                                     data-section-th="${secTh}">
                                     ${secTh}
-                                </option>`
-                            );
+                                </option>
+                            `);
+
                         });
 
                         $section.prop('disabled', false);
@@ -567,6 +580,10 @@
 
             $branch.on('change', loadSectionByBranch);
             $role.on('change', loadSectionByBranch);
+            $('select[name="job_position_id"]').on(
+                'change',
+                loadSectionByBranch
+            );
 
             $section.on('change', function() {
                 syncHiddenSectionMeta();

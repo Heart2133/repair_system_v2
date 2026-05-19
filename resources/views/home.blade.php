@@ -162,17 +162,16 @@
 
                                                     <!-- สาขา -->
                                                     <div class="col-md-6 mb-4">
-                                                        <label class="mb-2 d-block">
-                                                            สาขา <span class="text-danger">*</span>
-                                                        </label>
-                                                        <select class="form-select" id="branch_code">
-                                                            <option value="">-- เลือก --</option>
-                                                            @foreach (getBranchAll() as $item)
-                                                                <option value="{{ $item->branch_code }}">
-                                                                    {{ $item->branch_code }} - {{ $item->branch_desc }}
-                                                                </option>
-                                                            @endforeach
-                                                        </select>
+
+                                                        <label>สาขา</label>
+
+                                                        {{-- แสดงชื่อสาขา --}}
+                                                        <input type="text" class="form-control"
+                                                            value="{{ Auth::user()->hwh_branch }}" disabled>
+
+                                                        {{-- ส่ง code จริงเข้า DB --}}
+                                                        <input type="hidden" name="branch_code" id="branch_code"
+                                                            value="{{ optional(\App\Models\Branch::where('branch_desc', Auth::user()->hwh_branch)->first())->branch_code }}">
                                                     </div>
 
                                                 </div>
@@ -320,7 +319,7 @@
                                                         <button type="button"
                                                             class="btn btn-outline-primary btn-open-preview" disabled>
 
-                                                            Preview
+                                                            ดูไฟล์
 
                                                         </button>
 
@@ -742,7 +741,7 @@
 
                                                         <button type="button" class="btn btn-outline-primary">
 
-                                                            Preview
+                                                            ดูไฟล์
 
                                                         </button>
 
@@ -1059,46 +1058,55 @@
 
                                 <td class="text-center">
 
-                                    {{-- ถ้ายังไม่ destroy_completed --}}
-                                    @if ($r->status != 'destroy_completed')
-                                        <!-- ตรวจสอบ -->
-                                        <button class="btn btn-sm btn-outline-success btn-approve"
-                                            data-id="{{ $r->id }}" data-status="{{ $r->status }}"
-                                            title="{{ $statusText[$r->status] ?? 'ตรวจสอบ' }}">
-
-                                            <i class="bi {{ $icons[$r->status] ?? 'bi-check-circle' }}"></i>
-                                        </button>
-
-                                        <!-- ดูรายละเอียด -->
+                                    {{-- ถ้า flow discount และเสร็จแล้ว -> เหลือ View อย่างเดียว --}}
+                                    @if ($r->flow_type == 'discount' && $r->status == 'completed')
                                         <button class="btn btn-sm btn-outline-primary btn-detail"
                                             data-id="{{ $r->id }}" title="ดูรายละเอียด">
 
                                             <i class="bi bi-eye"></i>
                                         </button>
+                                    @else
+                                        {{-- flow ปกติ --}}
+                                        @if ($r->status != 'destroy_completed')
+                                            <button class="btn btn-sm btn-outline-success btn-approve"
+                                                data-id="{{ $r->id }}" data-status="{{ $r->status }}">
 
-                                        <!-- แก้ไข -->
-                                        <button class="btn btn-sm btn-outline-warning btn-edit"
-                                            data-id="{{ $r->id }}" title="แก้ไข">
+                                                <i class="bi {{ $icons[$r->status] ?? 'bi-check-circle' }}"></i>
+                                            </button>
 
-                                            <i class="bi bi-pencil-square"></i>
-                                        </button>
+                                            <button class="btn btn-sm btn-outline-primary btn-detail"
+                                                data-id="{{ $r->id }}">
+
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+
+                                            <button class="btn btn-sm btn-outline-warning btn-edit"
+                                                data-id="{{ $r->id }}">
+
+                                                <i class="bi bi-pencil-square"></i>
+                                            </button>
+                                        @endif
+
+
+                                        @if ($r->status == 'destroy_completed')
+                                            <a href="{{ route('destroy.print', $r->id) }}" target="_blank"
+                                                class="btn btn-sm btn-outline-secondary">
+
+                                                <i class="bi bi-printer"></i>
+
+                                            </a>
+                                        @endif
+
+                                        {{-- delete แสดงเฉพาะยังไม่ completed --}}
+                                        @if ($r->status != 'completed')
+                                            <button class="btn btn-sm btn-outline-danger btn-delete"
+                                                data-id="{{ $r->id }}">
+
+                                                <i class="bi bi-trash"></i>
+
+                                            </button>
+                                        @endif
                                     @endif
-
-                                    {{-- แสดงปริ้นเฉพาะ destroy_completed --}}
-                                    @if ($r->status == 'destroy_completed')
-                                        <a href="{{ route('destroy.print', $r->id) }}" target="_blank"
-                                            class="btn btn-sm btn-outline-secondary" title="พิมพ์เอกสาร">
-
-                                            <i class="bi bi-printer"></i>
-                                        </a>
-                                    @endif
-
-                                    <!-- ลบ -->
-                                    <button class="btn btn-sm btn-outline-danger btn-delete"
-                                        data-id="{{ $r->id }}" title="ลบ">
-
-                                        <i class="bi bi-trash"></i>
-                                    </button>
 
                                 </td>
 
@@ -1197,40 +1205,15 @@
                                     <div class="row">
 
                                         <div class="col-md-6 mb-4">
-                                            <label class="mb-2 d-block">ประเภทสินค้า *</label>
+                                            <label class="mb-2 d-block">ประเภทสินค้า</label>
 
-                                            <div class="d-flex flex-column gap-2">
-                                                <div class="form-check">
-                                                    <input type="radio" id="d_product_domestic" name="d_product_type"
-                                                        value="domestic" class="form-check-input">
-                                                    <label class="form-check-label">ในประเทศ</label>
-                                                </div>
-
-                                                <div class="form-check">
-                                                    <input type="radio" id="d_product_international"
-                                                        name="d_product_type" value="international"
-                                                        class="form-check-input">
-                                                    <label class="form-check-label">นอกประเทศ</label>
-                                                </div>
-                                            </div>
+                                            <input type="text" id="d_product_type" class="form-control" readonly>
                                         </div>
 
                                         <div class="col-md-6 mb-4">
-                                            <label class="mb-2 d-block">ประเภทปัญหา *</label>
+                                            <label class="mb-2 d-block">ประเภทปัญหา</label>
 
-                                            <div class="d-flex flex-column gap-2">
-                                                <div class="form-check">
-                                                    <input type="radio" name="d_issue_type" value="defect"
-                                                        class="form-check-input">
-                                                    <label class="form-check-label">สินค้าด้อยคุณภาพจากการผลิต</label>
-                                                </div>
-
-                                                <div class="form-check">
-                                                    <input type="radio" name="d_issue_type" value="claimable"
-                                                        class="form-check-input">
-                                                    <label class="form-check-label">สินค้าเสียหายที่สามารถเคลมได้</label>
-                                                </div>
-                                            </div>
+                                            <input type="text" id="d_issue_type" class="form-control" readonly>
                                         </div>
 
                                     </div>
@@ -1425,8 +1408,13 @@
             hr_done: "{{ url('destroy-list') }}"
         };
 
+
         let approveMode = false;
         let currentApproveId = null;
+
+        let previewMode = 'view';
+
+
         $(document).on('change', 'input[name="issue_type"]', function() {
 
             if ($(this).val() === 'claimable') {
@@ -1442,45 +1430,38 @@
 
             let id = $('#d_id').val();
             let currentStatus = $(this).data('status');
-            let nextStatus = STEP_FLOW[currentStatus];
 
-            if (!nextStatus) {
-                Swal.fire('Error', 'ไม่มี step ถัดไป', 'error');
+
+            // 🔥 ถ้ารอปริ้น → เปิดหน้าปริ้นเลย
+            if (currentStatus == 'waiting_branch_print') {
+
+                window.location.href =
+                    '/discount-print/' + id;
+
                 return;
             }
 
-            $.post("{{ url('damage-report/next-step') }}", {
-                _token: '{{ csrf_token() }}',
-                id: id,
-                next_status: nextStatus
-            }, function(res) {
 
-                if (res.success) {
+            let nextStatus =
+                STEP_FLOW[currentStatus];
 
-                    let btn = $('.btn-approve[data-id="' + id + '"]');
-                    btn.attr('data-status', nextStatus);
 
-                    $('#modalDetail').modal('hide');
+            $.post(
+                "{{ url('damage-report/next-step') }}", {
+                    _token: '{{ csrf_token() }}',
+                    id: id,
+                    next_status: nextStatus
+                },
+                function(res) {
 
-                    Swal.fire('สำเร็จ', 'อนุมัติเรียบร้อย', 'success')
-                        .then(() => {
+                    if (res.success) {
 
-                            // 🔥 ตรงนี้สำคัญมาก
-                            if (nextStatus === 'sap_completed') {
-                                window.location.href = "{{ url('accounting') }}";
-                                return;
-                            }
+                        location.reload();
 
-                            if (STEP_REDIRECT[nextStatus]) {
-                                window.location.href = STEP_REDIRECT[nextStatus];
-                                return;
-                            }
-
-                            location.reload();
-                        });
+                    }
 
                 }
-            });
+            );
 
         });
 
@@ -1961,6 +1942,9 @@
         // ==========================
         let deletedFiles = [];
 
+        // ==========================
+        // PREVIEW FILE FROM DATABASE
+        // ==========================
         $(document).on('click', '.btn-preview-file', function() {
 
             let files = $(this).data('files');
@@ -1979,39 +1963,56 @@
 
             files.forEach(function(f, index) {
 
-                let fileUrl = `{{ asset('storage') }}/${f.file_path}`;
+                let fileUrl =
+                    `{{ asset('storage') }}/${f.file_path}`;
 
                 let ext = '';
 
                 if (f.file_path.includes('.')) {
-                    ext = f.file_path.split('.').pop().toLowerCase();
+                    ext =
+                        f.file_path
+                        .split('.')
+                        .pop()
+                        .toLowerCase();
                 }
 
-                let name = f.file_name || f.file_path.split('/').pop();
+                let name =
+                    f.file_name ||
+                    f.file_path.split('/').pop();
+
+                // ปุ่มลบ แสดงเฉพาะ edit mode
+                let deleteBtn =
+                    previewMode === 'edit' ?
+                    `
+            <button type="button"
+                class="btn btn-danger btn-sm mt-2 btn-delete-file"
+                data-id="${f.id}"
+                data-index="${index}">
+                ลบไฟล์
+            </button>
+            ` :
+                    '';
 
                 // IMAGE
-                if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
+                if (
+                    ['jpg', 'jpeg', 'png', 'gif', 'webp']
+                    .includes(ext)
+                ) {
 
                     html += `
-                <div class="mb-4 text-center file-item-${index}">
+            <div class="mb-4 text-center file-item-${index}">
 
-                    <img src="${fileUrl}"
-                         class="img-fluid rounded shadow-sm"
-                         style="max-height:500px;object-fit:contain;">
+                <img src="${fileUrl}"
+                    class="img-fluid rounded shadow-sm"
+                    style="max-height:500px;object-fit:contain;">
 
-                    <div class="mt-2 fw-semibold text-secondary">
-                        ${name}
-                    </div>
-
-                    <button type="button"
-                        class="btn btn-danger btn-sm mt-2 btn-delete-file"
-                        data-id="${f.id}"
-                        data-index="${index}">
-
-                        ลบไฟล์
-
-                    </button>
+                <div class="mt-2 fw-semibold text-secondary">
+                    ${name}
                 </div>
+
+                ${deleteBtn}
+
+            </div>
             `;
                 }
 
@@ -2019,35 +2020,27 @@
                 else if (ext === 'pdf') {
 
                     html += `
-                <div class="mb-4 file-item-${index}">
+            <div class="mb-4 file-item-${index}">
 
-                    <iframe src="${fileUrl}"
-                            width="100%"
-                            height="600px"
-                            style="border:none;">
-                    </iframe>
+                <iframe src="${fileUrl}"
+                    width="100%"
+                    height="600px"
+                    style="border:none;">
+                </iframe>
 
-                    <div class="mt-2 fw-semibold text-secondary">
-                        ${name}
-                    </div>
-
-                    <button type="button"
-                            class="btn btn-danger btn-sm mt-2 btn-delete-file"
-                            data-id="${f.id}"
-                            data-index="${index}">
-
-                        ลบไฟล์
-
-                    </button>
-
+                <div class="mt-2 fw-semibold text-secondary">
+                    ${name}
                 </div>
+
+                ${deleteBtn}
+
+            </div>
             `;
                 }
 
             });
 
             $('#previewContainer').html(html);
-
             $('#imagePreviewModal').modal('show');
 
         });
@@ -2499,9 +2492,9 @@
             let price = parseFloat(row.find('.price').val()) || 0;
             let qty = parseFloat(row.find('.qty').val()) || 0;
 
-            row.find('.total').val(price * qty);
+            row.find('.total').val((price * qty).toFixed(2));
 
-            calculateTotal(); // 👈 ต้องเรียกอันนี้
+            calculateTotal('#detail-products');
         });
 
         $(document).on('keyup change', '#edit_product_wrapper .qty, #edit_product_wrapper .price', function() {
@@ -2526,6 +2519,8 @@
 
         // detail
         $(document).on('click', '.btn-detail', function() {
+
+            previewMode = 'view';
 
             let id = $(this).attr('data-id');
 
@@ -2680,28 +2675,38 @@
             $('#d_flow_type').val(res.flow_type || '');
             $('#d_total').text(parseFloat(res.total_amount || 0).toLocaleString());
             $('#d_damage_reason').val(res.damage_reason || '');
-            // reset ก่อน
-            $('input[name="d_product_type"]').prop('checked', false);
-            $('input[name="d_issue_type"]').prop('checked', false);
-
-            // normalize value
-            let productType = String(res.product_type || '')
+            // normalize
+            let productType = (res.product_type || '')
+                .toString()
                 .trim()
                 .toLowerCase();
 
-            let issueType = String(res.issue_type || '')
+            let issueType = (res.issue_type || '')
+                .toString()
                 .trim()
                 .toLowerCase();
 
-            console.log(productType);
-            console.log(issueType);
 
-            // set ค่าใหม่
-            $('input[name="d_product_type"][value="' + productType + '"]')
-                .prop('checked', true);
+            // mapping แปลงค่าเป็นข้อความไทย
+            const productText = {
+                domestic: 'ในประเทศ',
+                international: 'นอกประเทศ'
+            };
 
-            $('input[name="d_issue_type"][value="' + issueType + '"]')
-                .prop('checked', true);
+            const issueText = {
+                defect: 'สินค้าด้อยคุณภาพจากการผลิต',
+                claimable: 'สินค้าเสียหายที่สามารถเคลมได้'
+            };
+
+
+            // set ค่า textbox
+            $('#d_product_type').val(
+                productText[productType] || '-'
+            );
+
+            $('#d_issue_type').val(
+                issueText[issueType] || '-'
+            );
 
             // ✅ วันที่เอกสาร
             $('#d_date').val(
@@ -2771,7 +2776,7 @@
 
             $('#detail-products').html(productHtml);
 
-            calculateTotal();
+            calculateTotal('#detail-products');
 
             // 👨‍💼 EMPLOYEE
             let empHtml = '';
@@ -2812,14 +2817,26 @@
 
         function lockModal() {
 
+            // input + textarea
             $('#modalDetail')
-                .find('input[type=text], textarea')
-                .prop('readonly', true);
+                .find('input, textarea')
+                .prop('readonly', true)
+                .css({
+                    'background-color': '#e9ecef',
+                    'pointer-events': 'none',
+                    'cursor': 'not-allowed'
+                });
 
+            // select + radio + checkbox
             $('#modalDetail')
                 .find('select, input[type=radio], input[type=checkbox]')
-                .prop('disabled', true);
+                .prop('disabled', true)
+                .css({
+                    'background-color': '#e9ecef',
+                    'cursor': 'not-allowed'
+                });
 
+            // ปิดปุ่มแก้ไขทั้งหมดใน detail
             $('#modalDetail')
                 .find(`
             .btn-add-product,
@@ -2827,10 +2844,13 @@
             .remove-product,
             .remove-emp,
             .btn-update
-        `).hide();
+        `)
+                .hide();
         }
 
         $(document).on('click', '.btn-edit', function() {
+
+            previewMode = 'edit';
 
             uploadedFiles = [];
 
@@ -3228,6 +3248,14 @@
             if (status === 'waiting_branch_sap') {
                 window.location.href =
                     "{{ route('branch.sap') }}" + "?id=" + id;
+                return;
+            }
+
+            if (status === 'waiting_branch_print') {
+
+                window.location.href =
+                    "{{ url('discount-print') }}/" + id;
+
                 return;
             }
 

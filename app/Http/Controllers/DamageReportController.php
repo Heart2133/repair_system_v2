@@ -40,6 +40,7 @@ class DamageReportController extends Controller
 
         $reports = DamageReport::latest()->get();
 
+
         return view('home', compact(
             'total',
             'pending',
@@ -202,7 +203,7 @@ class DamageReportController extends Controller
 
             if (!empty($deletedFiles)) {
 
-                $files = DB::table('damage_report_attachments')
+                $files = DB::table('damage_report_F')
                     ->whereIn('id', $deletedFiles)
                     ->get();
 
@@ -649,17 +650,40 @@ class DamageReportController extends Controller
                         ]);
                     }
 
-                    $percent = $request->manager_discount_percent; // ✅ แก้ตรงนี้
+                    $percent = $request->manager_discount_percent;
 
-                    $finalPrice = $report->total_amount
+                    $finalPrice =
+                        $report->total_amount
                         - ($report->total_amount * $percent / 100);
+
+
+                    // ✅ เช็คว่ามีพนักงานต้องหักเงินไหม
+                    $hasEmployee =
+                        DB::table('damage_report_employees')
+                        ->where(
+                            'damage_report_id',
+                            $request->id
+                        )
+                        ->exists();
+
+
+                    // ✅ มีพนักงาน → ส่ง accounting
+                    // ✅ ไม่มี → ปริ้นได้เลย
+                    $nextStatus =
+                        $hasEmployee
+                        ? 'waiting_accounting'
+                        : 'waiting_branch_print';
+
 
                     DB::table('damage_reports')
                         ->where('id', $request->id)
                         ->update([
-                            'status' => 'waiting_branch_print',
+
+                            'status' => $nextStatus,
+
                             'discount_percent' => $percent,
                             'final_price' => $finalPrice,
+
                             'approved_admin_by' => auth()->id(),
                             'approved_admin_at' => now(),
                             'updated_at' => now(),
@@ -873,11 +897,25 @@ class DamageReportController extends Controller
                 ]);
             }
 
-            // 🔥 update status
+            // 🔥 ดึง report
+            $report = DB::table('damage_reports')
+                ->where('id', $request->id)
+                ->first();
+
+
+            // ถ้าเป็น discount → ไปหน้าปริ้น
+            // ถ้า flow อื่น → hr_done เหมือนเดิม
+            $status =
+                $report->flow_type == 'discount'
+                ? 'waiting_branch_print'
+                : 'hr_done';
+
+
+            // update status
             DB::table('damage_reports')
                 ->where('id', $request->id)
                 ->update([
-                    'status' => 'hr_done',
+                    'status' => $status,
                     'updated_at' => now()
                 ]);
 
@@ -907,13 +945,18 @@ class DamageReportController extends Controller
 
     public function discountPrint($id)
     {
-        $report = DB::table('damage_reports')->where('id', $id)->first();
+        $report = DamageReport::with([
+            'files',
+            'items'
+        ])->findOrFail($id);
 
-        $items = DB::table('damage_report_items')
-            ->where('damage_report_id', $id)
-            ->get();
-
-        return view('discount-print', compact('report', 'items'));
+        return view(
+            'discount-print',
+            [
+                'report' => $report,
+                'items' => $report->items
+            ]
+        );
     }
 
     public function discountPrintSave(Request $request)
@@ -1103,28 +1146,84 @@ class DamageReportController extends Controller
         $report = DamageReport::find($req->id);
 
         if (!$report) {
-            return response()->json(['success' => false, 'error' => 'ไม่พบข้อมูล']);
+            return response()->json([
+                'success' => false,
+                'error' => 'ไม่พบข้อมูล'
+            ]);
         }
 
-        $flow = [
-            'pending' => 'approved_manager',
-            'approved_manager' => 'waiting_branch_sap',
-            'waiting_branch_sap' => 'sap_completed',
-            'sap_completed' => 'accounting_done',
-            'accounting_done' => 'waiting_branch_print',
-            'waiting_branch_print' => 'waiting_accounting',
-            'waiting_accounting' => 'hr_done',
-            'hr_done' => 'destroy_completed',
-            'destroy_completed' => 'completed',
-        ];
+
+        // ==========================
+        // FLOW ลดราคา
+        // ==========================
+        if ($report->flow_type == 'discount') {
+
+            $flow = [
+
+                'pending'
+                => 'approved_manager',
+
+                'approved_manager'
+                => 'waiting_accounting',
+
+                'waiting_accounting'
+                => 'waiting_branch_print',
+
+                'waiting_branch_print'
+                => 'completed',
+            ];
+        }
+
+        // ==========================
+        // FLOW ทำลาย / claim อื่นๆ
+        // ==========================
+        else {
+
+            $flow = [
+
+                'pending'
+                => 'approved_manager',
+
+                'approved_manager'
+                => 'waiting_branch_sap',
+
+                'waiting_branch_sap'
+                => 'sap_completed',
+
+                'sap_completed'
+                => 'accounting_done',
+
+                'accounting_done'
+                => 'waiting_accounting',
+
+                'waiting_accounting'
+                => 'hr_done',
+
+                'hr_done'
+                => 'destroy_completed',
+
+                'destroy_completed'
+                => 'completed',
+
+            ];
+        }
+
 
         if (!isset($flow[$report->status])) {
-            return response()->json(['success' => false, 'error' => 'step ผิด']);
+
+            return response()->json([
+                'success' => false,
+                'error' => 'step ผิด'
+            ]);
         }
+
 
         $report->status = $flow[$report->status];
         $report->save();
 
-        return response()->json(['success' => true]);
+        return response()->json([
+            'success' => true,
+            'next_status' => $report->status
+        ]);
     }
 }

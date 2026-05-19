@@ -546,17 +546,25 @@ class SettingController extends Controller
     public function departmentsBySection(Request $request)
     {
         $sectionEn = $request->query('section_en');
-        if (!$sectionEn) return response()->json([]);
+
+        if (!$sectionEn) {
+            return response()->json([]);
+        }
 
         $departments = DB::table('departments')
-            ->select('department_th', 'department_en', 'section_en', 'id')
-            ->where('section_en', $sectionEn)
-            ->orderBy('id', 'asc')
+            ->select(
+                'department_th',
+                'department_en',
+                'section_en',
+                'id'
+            )
+            ->whereIn('section_en', (array)$sectionEn)
+            ->orderBy('id')
             ->get();
 
         return response()->json($departments);
     }
-
+    
     public function type_request_manage()
     {
         $types = DB::table('type_request')

@@ -177,6 +177,41 @@
             </div>
         </div>
 
+        <!-- 💰 DISCOUNT -->
+        <div class="card mb-3" id="discount-box" style="display:none;">
+
+            <div class="card-header">
+                ข้อมูลส่วนลด
+            </div>
+
+            <div class="card-body">
+
+                <div class="row">
+
+                    <div class="col-md-4">
+                        <label>% ส่วนลด</label>
+
+                        <input type="number" class="form-control" id="discount_percent" value="0">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label>ราคาส่วนลด</label>
+
+                        <input type="text" class="form-control" id="discount_amount" readonly>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label>สุทธิ</label>
+
+                        <input type="text" class="form-control" id="net_amount" readonly>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
         <!-- 🔷 ACTION -->
         <div class="card-body d-flex justify-content-end gap-2">
 
@@ -256,6 +291,30 @@
                 $('#d_branch_code').val(res.branch_code);
 
                 $('#d_flow_type').val(res.flow_type);
+
+                // DISCOUNT
+                if (res.flow_type === 'discount') {
+
+                    $('#discount-box').show();
+
+                    let total =
+                        parseFloat(res.total_amount || 0);
+
+                    let percent =
+                        parseFloat(
+                            res.manager_discount_percent || 0
+                        );
+
+                    $('#discount_percent')
+                        .val(percent);
+
+                    calculateDiscount(total);
+
+                } else {
+
+                    $('#discount-box').hide();
+
+                }
 
                 $('#d_total').text(
                     parseFloat(res.total_amount || 0).toLocaleString()
@@ -405,6 +464,54 @@
             });
 
         }
+
+        function calculateDiscount(total) {
+
+            let percent =
+                parseFloat(
+                    $('#discount_percent').val()
+                ) || 0;
+
+            let discount =
+                (total * percent) / 100;
+
+            let net =
+                total - discount;
+
+            $('#discount_amount').val(
+                discount.toLocaleString(
+                    undefined, {
+                        minimumFractionDigits: 2
+                    }
+                )
+            );
+
+            $('#net_amount').val(
+                net.toLocaleString(
+                    undefined, {
+                        minimumFractionDigits: 2
+                    }
+                )
+            );
+
+        }
+
+        $(document).on(
+            'input',
+            '#discount_percent',
+            function() {
+
+                let total =
+                    parseFloat(
+                        $('#d_total')
+                        .text()
+                        .replace(/,/g, '')
+                    ) || 0;
+
+                calculateDiscount(total);
+
+            }
+        );
 
         // ================= PREVIEW FILE =================
         $(document).on('click', '.btn-preview-file', function() {
@@ -573,123 +680,74 @@
             }
 
             // ===== DISCOUNT =====
-            let percentDefault = $(this).data('percent') || 0;
+            // ===== DISCOUNT =====
+            if (flowType === 'discount') {
 
-            Swal.fire({
-                title: 'กำหนดส่วนลด',
-                html: `
-                    <div class="row mt-3">
-                        <div class="col-md-4">
-                            <label>% ส่วนลด</label>
-                            <input type="number"
-                                id="discount_percent"
-                                class="form-control"
-                                value="${percentDefault}">
-                        </div>
+                let percent =
+                    $('#discount_percent').val();
 
-                        <div class="col-md-4">
-                            <label>ส่วนลด</label>
-                            <input type="text"
-                                id="discount_amount"
-                                class="form-control"
-                                disabled>
-                        </div>
+                if (
+                    percent === '' ||
+                    percent < 0 ||
+                    percent > 100
+                ) {
 
-                        <div class="col-md-4">
-                            <label>สุทธิ</label>
-                            <input type="text"
-                                id="net_amount"
-                                class="form-control"
-                                disabled>
-                        </div>
-                    </div>
-                `,
-                showCancelButton: true,
-                confirmButtonText: 'อนุมัติ',
-
-                didOpen: () => {
-
-                    const percentInput =
-                        document.getElementById('discount_percent');
-
-                    const discountInput =
-                        document.getElementById('discount_amount');
-
-                    const netInput =
-                        document.getElementById('net_amount');
-
-                    function calculate() {
-
-                        let percent =
-                            parseFloat(percentInput.value) || 0;
-
-                        let discount =
-                            (total * percent) / 100;
-
-                        let net = total - discount;
-
-                        discountInput.value =
-                            discount.toLocaleString(undefined, {
-                                minimumFractionDigits: 2
-                            });
-
-                        netInput.value =
-                            net.toLocaleString(undefined, {
-                                minimumFractionDigits: 2
-                            });
-                    }
-
-                    percentInput.addEventListener(
-                        'input',
-                        calculate
+                    Swal.fire(
+                        'ผิดพลาด',
+                        'กรุณากรอก % ส่วนลด 0-100',
+                        'error'
                     );
 
-                    calculate();
-                },
-
-                preConfirm: () => {
-
-                    let percent =
-                        $('#discount_percent').val();
-
-                    if (!percent) {
-
-                        Swal.showValidationMessage(
-                            'กรุณากรอก % ส่วนลด'
-                        );
-
-                        return false;
-                    }
-
-                    return {
-                        percent
-                    };
+                    return;
                 }
 
-            }).then((result) => {
+                Swal.fire({
+                    title: 'ยืนยันอนุมัติ',
+                    text: 'ต้องการอนุมัติรายการนี้ใช่หรือไม่?',
+                    icon: 'question',
+                    showCancelButton: true
+                }).then((result) => {
 
-                if (!result.isConfirmed) return;
+                    if (!result.isConfirmed) return;
 
-                $.post("{{ route('damage.admin.action') }}", {
-                    _token: '{{ csrf_token() }}',
-                    id: id,
-                    action: 'approved',
-                    manager_discount_percent: result.value.percent
-                }, function(res) {
+                    $.post(
+                        "{{ route('damage.admin.action') }}", {
+                            _token: '{{ csrf_token() }}',
+                            id: id,
+                            action: 'approved',
+                            manager_discount_percent: percent
+                        },
+                        function(res) {
 
-                    if (!res.success) {
-                        Swal.fire('ผิดพลาด', res.error, 'error');
-                        return;
-                    }
+                            if (!res.success) {
 
-                    Swal.fire('สำเร็จ', 'อนุมัติแล้ว', 'success')
-                        .then(() => {
-                            window.location.href = "{{ route('damage-report') }}";
-                        });
+                                Swal.fire(
+                                    'ผิดพลาด',
+                                    res.error,
+                                    'error'
+                                );
+
+                                return;
+                            }
+
+                            Swal.fire(
+                                'สำเร็จ',
+                                'อนุมัติแล้ว',
+                                'success'
+                            ).then(() => {
+
+                                window.location.href =
+                                    "{{ route('damage-report') }}";
+
+                            });
+
+                        }
+                    );
 
                 });
 
-            });
+                return;
+            }
 
         });
 

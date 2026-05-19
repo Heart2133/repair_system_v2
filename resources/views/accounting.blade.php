@@ -205,57 +205,43 @@
                 </div>
             </div>
 
-            <div class="card-body">
+            <div class="card mt-4">
 
                 <div class="card-header">
-                    document no.
+                    Document No.
                 </div>
 
-                <div class="row g-3">
+                <div class="card-body">
 
-                    @forelse($reports as $r)
-                        <div class="col-12">
+                    <div id="sap-box">
 
-                            <div class="mb-3 p-3 border rounded row-click" data-id="{{ $r->id }}">
+                        <div class="mb-3">
 
-                                {{-- SAP DOC --}}
-                                <label class="form-label">
-                                    SAP Document No.
-                                </label>
+                            <label>SAP Document No.</label>
 
-                                <input type="text" class="form-control sap_doc" style="max-width: 300px;"
-                                    value="{{ $r->sap_doc ?? '' }}" {{ $r->sap_doc ? 'disabled' : '' }}>
-
-                                {{-- SAP DATE --}}
-                                <label class="form-label mt-2">
-                                    SAP Date
-                                </label>
-
-                                <input type="date" class="form-control sap_date" style="max-width: 300px;"
-                                    value="{{ $r->sap_date ?? '' }}" {{ $r->sap_date ? 'disabled' : '' }}>
-
-                            </div>
-
-                            {{-- BUTTON --}}
-                            <div class="text-end mt-3">
-
-                                <button class="btn btn-success btn-save px-4" data-id="{{ $r->id }}"
-                                    {{ $r->status != 'waiting_accounting' ? 'disabled' : '' }}>
-
-                                    💾 บันทึก
-
-                                </button>
-
-                            </div>
+                            <input type="text" class="form-control sap_doc" id="sap_doc">
 
                         </div>
 
-                    @empty
+                        <div class="mb-3">
 
-                        <div class="col-12 text-center">
-                            ไม่มีข้อมูล
+                            <label>SAP Date</label>
+
+                            <input type="date" class="form-control sap_date" id="sap_date">
+
                         </div>
-                    @endforelse
+
+                        <div class="text-end">
+
+                            <button class="btn btn-success btn-save" id="btn-save">
+
+                                💾 บันทึก
+
+                            </button>
+
+                        </div>
+
+                    </div>
 
                 </div>
 
@@ -291,14 +277,12 @@
         </div>
 
     </div>
-
 @endsection
 
 @section('script')
     <script src="{{ URL::asset('/assets/libs/sweetalert2/sweetalert2.min.js') }}"></script>
 
     <script>
-
         // ================= PREVIEW FILE =================
         $(document).on('click', '.btn-preview-file', function() {
 
@@ -394,17 +378,12 @@
         });
 
 
-        $(document).on('click', '.btn-save', function() {
+        $(document).on('click', '#btn-save', function() {
 
-            let btn = $(this);
+            let id = $('#d_id').val();
 
-            // 🔥 เปลี่ยนตรงนี้
-            let row = btn.closest('.col-12');
-
-            let id = btn.data('id');
-
-            let sap_doc = row.find('.sap_doc').val();
-            let sap_date = row.find('.sap_date').val();
+            let sap_doc = $('#sap_doc').val();
+            let sap_date = $('#sap_date').val();
 
             if (!sap_doc || !sap_date) {
 
@@ -426,28 +405,62 @@
 
                 if (!result.isConfirmed) return;
 
-                $.post("{{ route('accounting.save') }}", {
-                    _token: '{{ csrf_token() }}',
-                    id: id,
-                    sap_doc: sap_doc,
-                    sap_date: sap_date
-                }, function(res) {
+                // กันกดซ้ำ
+                $('#btn-save')
+                    .prop('disabled', true)
+                    .text('กำลังบันทึก...');
 
-                    if (!res.success) {
-                        Swal.fire('ผิดพลาด', res.error, 'error');
-                        return;
+                $.post(
+                    "{{ route('accounting.save') }}", {
+                        _token: '{{ csrf_token() }}',
+                        id: id,
+                        sap_doc: sap_doc,
+                        sap_date: sap_date
+                    },
+
+                    function(res) {
+
+                        if (!res.success) {
+
+                            $('#btn-save')
+                                .prop('disabled', false)
+                                .text('💾 บันทึก');
+
+                            Swal.fire(
+                                'ผิดพลาด',
+                                res.error,
+                                'error'
+                            );
+
+                            return;
+                        }
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'บันทึก SAP สำเร็จ',
+                            timer: 1200,
+                            showConfirmButton: false
+                        }).then(() => {
+
+                            // โหลดใหม่ทั้งหน้า ชัวร์สุด
+                            window.location.href =
+                                "{{ route('damage-report') }}";
+
+                        });
+
                     }
 
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'บันทึก SAP สำเร็จ',
-                        timer: 1200,
-                        showConfirmButton: false
-                    }).then(() => {
+                ).fail(function() {
 
-                        window.location.href = "{{ url('damage-report') }}";
+                    $('#btn-save')
+                        .prop('disabled', false)
+                        .text('💾 บันทึก');
 
-                    });
+                    Swal.fire(
+                        'ผิดพลาด',
+                        'บันทึกไม่สำเร็จ',
+                        'error'
+                    );
 
                 });
 
@@ -457,11 +470,28 @@
 
         $(document).ready(function() {
 
-            let firstRow = $('.row-click').first();
+            let urlParams = new URLSearchParams(window.location.search);
 
-            if (firstRow.length) {
-                let id = firstRow.data('id');
+            let id = urlParams.get('id'); // ดึง ?id=99
+
+            if (id) {
+
                 loadDetail(id);
+
+                // scroll ไป row นั้น (optional)
+                $('.row-click').removeClass('border-primary');
+
+                $('.row-click[data-id="' + id + '"]')
+                    .addClass('border border-primary');
+
+            } else {
+
+                let firstRow = $('.row-click').first();
+
+                if (firstRow.length) {
+                    loadDetail(firstRow.data('id'));
+                }
+
             }
 
         });
@@ -477,6 +507,7 @@
 
                     console.log(res);
 
+                    // ================= DETAIL =================
                     $('#d_doc_no_text').text(res.doc_no || '-');
                     $('#d_branch_code').val(res.branch_code || '-');
 
@@ -485,100 +516,236 @@
                     $('#d_product_type').val(res.product_type || '-');
                     $('#d_issue_type').val(res.issue_type || '-');
 
-                    $('#d_damage_reason').val(res.damage_reason || '-');
+                    $('#d_damage_reason').val(
+                        res.damage_reason || '-'
+                    );
 
-                    // ================= FILES =================
+                    $('#d_date').val(
+                        res.created_at ?
+                        res.created_at.substring(0, 10) :
+                        ''
+                    );
+
+                    // ================= SAP =================
+
+                    $('#sap_doc').val(res.sap_doc || '');
+                    $('#sap_date').val(res.sap_date || '');
+
+                    // reset ทุกครั้ง
+                    $('#sap_doc').prop('disabled', false);
+                    $('#sap_date').prop('disabled', false);
+
+                    $('#btn-save')
+                        .prop('disabled', false)
+                        .removeClass('btn-secondary')
+                        .addClass('btn-success')
+                        .html('💾 บันทึก');
+
+
+                    // lock เฉพาะ Accounting เสร็จแล้ว
+                    if (res.status === 'accounting_done') {
+
+                        $('#sap_doc').prop('disabled', true);
+                        $('#sap_date').prop('disabled', true);
+
+                        $('#btn-save')
+                            .prop('disabled', true)
+                            .removeClass('btn-success')
+                            .addClass('btn-secondary')
+                            .html('✔ บันทึกแล้ว');
+                    }
+
+                    // ================= FILE =================
+
                     let fileHtml = '';
 
-                    if (res.files && res.files.length > 0) {
+                    if (
+                        res.files &&
+                        res.files.length > 0
+                    ) {
 
                         fileHtml = `
-        <div class="input-group">
+            <div class="input-group">
 
-            <input type="text"
-                class="form-control"
-                value="${res.files.length} ไฟล์"
-                readonly>
+                <input
+                    class="form-control"
+                    value="${res.files.length} ไฟล์"
+                    readonly>
 
-            <button type="button"
-                class="btn btn-primary btn-preview-file"
-                data-files='${encodeURIComponent(JSON.stringify(res.files))}'>
+                <button
+                    class="btn btn-primary btn-preview-file"
+                    data-files='${encodeURIComponent(
+                        JSON.stringify(res.files)
+                    )}'>
 
-                ดูไฟล์
+                    ดูไฟล์
 
-            </button>
+                </button>
 
-        </div>
-    `;
+            </div>
+            `;
 
                     } else {
 
                         fileHtml = `
-        <span class="text-muted">
-            ไม่มีไฟล์แนบ
-        </span>
-    `;
+            <span class="text-muted">
+                ไม่มีไฟล์แนบ
+            </span>
+            `;
                     }
 
                     $('#d_files').html(fileHtml);
 
+                    // ================= TOTAL =================
+
                     $('#d_total').text(
-                        parseFloat(res.total_amount || 0).toLocaleString(undefined, {
-                            minimumFractionDigits: 2
-                        })
+                        parseFloat(
+                            res.total_amount || 0
+                        ).toLocaleString(
+                            undefined, {
+                                minimumFractionDigits: 2
+                            }
+                        )
                     );
 
-                    $('#d_date').val(res.created_at ? res.created_at.substring(0, 10) : '');
+                    // ================= PRODUCT =================
 
-                    // ===== PRODUCT =====
                     let productHtml = '';
 
-                    if (res.items && res.items.length > 0) {
+                    if (
+                        res.items &&
+                        res.items.length > 0
+                    ) {
+
                         res.items.forEach(function(i) {
+
                             productHtml += `
-                        <tr>
-                            <td><input class="form-control" value="${i.product_code}" readonly></td>
-                            <td><input class="form-control" value="${i.product_name}" readonly></td>
-                            <td><input class="form-control text-end" value="${i.price}" readonly></td>
-                            <td><input class="form-control text-center" value="${i.qty}" readonly></td>
-                            <td><input class="form-control text-end" value="${i.total}" readonly></td>
-                        </tr>
-                        `;
+                <tr>
+
+                    <td>
+                        <input
+                            class="form-control"
+                            value="${i.product_code}"
+                            readonly>
+                    </td>
+
+                    <td>
+                        <input
+                            class="form-control"
+                            value="${i.product_name}"
+                            readonly>
+                    </td>
+
+                    <td>
+                        <input
+                            class="form-control text-end"
+                            value="${i.price}"
+                            readonly>
+                    </td>
+
+                    <td>
+                        <input
+                            class="form-control text-center"
+                            value="${i.qty}"
+                            readonly>
+                    </td>
+
+                    <td>
+                        <input
+                            class="form-control text-end"
+                            value="${i.total}"
+                            readonly>
+                    </td>
+
+                </tr>
+                `;
                         });
+
                     } else {
-                        productHtml = `<tr><td colspan="5" class="text-center">ไม่มีสินค้า</td></tr>`;
+
+                        productHtml = `
+            <tr>
+                <td colspan="5"
+                    class="text-center">
+
+                    ไม่มีสินค้า
+
+                </td>
+            </tr>
+            `;
                     }
 
-                    $('#detail-products').html(productHtml);
+                    $('#detail-products')
+                        .html(productHtml);
 
-                    // ===== EMPLOYEE =====
+                    // ================= EMPLOYEE =================
+
                     let empHtml = '';
 
-                    if (res.employees && res.employees.length > 0 && res.flow_type !== 'quality') {
+                    if (
+                        res.employees &&
+                        res.employees.length > 0 &&
+                        res.flow_type !== 'quality'
+                    ) {
 
                         res.employees.forEach(function(e) {
+
                             empHtml += `
-                            <tr>
-                                <td><input class="form-control" value="${e.emp_code}" readonly></td>
-                                <td><input class="form-control" value="${e.emp_name}" readonly></td>
-                                <td><input class="form-control text-center" value="${e.percent}" readonly></td>
-                                <td><input class="form-control text-end" value="${e.amount}" readonly></td>
-                            </tr>
-                            `;
+                <tr>
+
+                    <td>
+                        <input
+                        class="form-control"
+                        value="${e.emp_code}"
+                        readonly>
+                    </td>
+
+                    <td>
+                        <input
+                        class="form-control"
+                        value="${e.emp_name}"
+                        readonly>
+                    </td>
+
+                    <td>
+                        <input
+                        class="form-control text-center"
+                        value="${e.percent}"
+                        readonly>
+                    </td>
+
+                    <td>
+                        <input
+                        class="form-control text-end"
+                        value="${e.amount}"
+                        readonly>
+                    </td>
+
+                </tr>
+                `;
                         });
 
                         $('#employee-box').show();
 
                     } else {
+
                         $('#employee-box').hide();
                     }
 
-                    $('#detail-employees').html(empHtml);
+                    $('#detail-employees')
+                        .html(empHtml);
 
                 })
                 .fail(function(err) {
+
                     console.error(err);
-                    alert('โหลดข้อมูลไม่สำเร็จ');
+
+                    Swal.fire(
+                        'ผิดพลาด',
+                        'โหลดข้อมูลไม่สำเร็จ',
+                        'error'
+                    );
+
                 });
 
         }
